@@ -1,39 +1,63 @@
-# Example Mod
+# Brainless Library
 
-Template for making Babric mods for BTA!
+Game AI framework and utilities, WIP!
 
-**Note: *DO NOT fork this repository unless you want to contribute!***
+### Btw
+It started as a code experiment, maybe it will end up as such.
 
-## Prerequisites
-- JDK for Java 21 ([Eclipse Temurin](https://adoptium.net/temurin/releases/) recommended)
-- [Intellij IDEA](https://www.jetbrains.com/idea/download/) (Scroll down for the free community edition, if using linux **DO NOT** use the flatpak distribution)
-- Minecraft Development plugin (Optional, but highly recommended)
+### Warning:
+It has nothing to do with generative AI or complex neural networks.
 
-## Setup instructions
-   
+### Example of villagier AI
+```java
+AI ai = AI.create(brain -> {
+    brain.inputs()
+        .add("hunger",  0.0)
+        .add("fatigue", 0.0)
+        .add("danger",  0.0)
+        .add("work",    0.0);
 
-1. Click the `Use this template` button on this repo's page above (Will only appear if logged in). Choose `Create a new repository`, you will be redirected to a new page. Enter your repo's name and description, and hit `Create repository`.  
-   To get your project, open IntelliJ IDEA and click `Clone Repository` (`Get from VCS` on older versions). Select `Repository URL` and enter your repo's url
+    brain.layer("desires", layer -> {
+        layer.mix("desire_eat")
+            .add("hunger", 1.0).sub("danger", 0.7).sigmoid(6);
+        layer.mix("desire_sleep")
+            .add("fatigue", 1.0).sub("danger", 0.9).sigmoid(6);
+        layer.mix("desire_flee")
+            .add("danger", 1.0).sigmoid(8);
+        layer.mix("desire_work")
+            .add("work", 1.0).sub("hunger", 0.5).sub("fatigue", 0.4).sigmoid(5);
+    });
+});
 
-2. After the project has finished importing, close it and open it again.  
-   If that does not work, open the right sidebar with `Gradle` on it, open `Tasks` > `fabric` and run `ideaSyncTask`.
+JobQueue queue = ai.queue(JobQueue.Mode.HIGHEST_WINS, 0.25, 3);
+queue.register("Eat",   ai.getBrain().getNode("desire_eat"),   () -> System.out.println("Villager eats"));
+queue.register("Sleep", ai.getBrain().getNode("desire_sleep"), () -> System.out.println("Villager sleeps"), () -> System.out.println("Sleep interrupted"));
+queue.register("Flee",  ai.getBrain().getNode("desire_flee"),  () -> System.out.println("Villager flees!"), () -> System.out.println("Flee interrupted"));
+queue.register("Work",  ai.getBrain().getNode("desire_work"),  () -> System.out.println("Villager works"));
 
-3. Create a new run configuration by going in `Run > Edit Configurations`.  
-   Then click on the plus icon and select Gradle. In the `Tasks and Arguments` field enter `build`.  
-   Running it will build your finished jar files and put them in `build/libs/`.
+// Each game tick:
+ai.update(in -> in
+    .set("hunger",  0.8)
+    .set("fatigue", 0.3)
+    .set("danger",  0.0)
+    .set("work",    0.5));
+```
 
-4. Lastly, open `File` > `Settings` and head to `Build, Execution, Development` > `Build Tools` > `Gradle`.  
-   Make sure `Build and run using` and `Run tests using` is set to `Gradle`.
+### Queue modes
 
-5. Done! Now, all that's left is to change every mention of `examplemod` and `turniplabs` to your own mod id and mod group, respectively. Happy modding!
+| Mode | Behavior |
+|------|----------|
+| `HIGHEST_WINS` | Most urgent desire always first |
+| `FIFO_TIERED` | Sorted into high/mid/low tiers, FIFO within each |
+| `WEIGHTED_RANDOM` | Higher desire = higher chance, not guaranteed |
 
-## Tips
+Queue pre-calculates next N jobs. If total desire delta exceeds threshold, discards and rebuilds.
 
-1. If you haven't already you should join the BTA modding discord! https://discord.gg/FTUNJhswBT
-2. You can set your username when launching the client run configuration by setting `--username <username>` in your program arguments.
-3. When launching the server run configuration you may want to remove the `nogui` program argument in order to see the regular server GUI.
-4. In Intellij you can double press shift or press ctrl+N to search class files, change the search from the default `Project Files` to `All Places` you can easily explore the classes for your dependencies and even BTA itself.
-5. In Intellij if ctrl+left-click on a field or method you can quickly get information on when and where that field or method is assign or used.
-6. Ensure IntelliJ is updated to the latest version. This is important because this template uses the latest Gradle version and if your IntelliJ installation is outdated, it may not support the latest version.
-7. In the `examplemod.mixins.json` you'll see `"compatibilityLevel": "JAVA_${java}",` along with an error message from the `Minecraft Development` plugin stating `Cannot resolve compatibility level 'JAVA_${java}'`. You can safely ignore this. The Gradle build system has been set up to grab the Java version from your `gradle.properties` and replace `${java}` with it. So the compiled binary will properly have it as `JAVA_8`.
+### Connection ops
 
+Built-in: `add`, `sub`, `mul`, `div`, `max`, `min`.  
+Custom:
+```java
+layer.mix("desire_eat").op("hunger", (a, b) -> a + b * 1.5, 0.8);
+```
+````
