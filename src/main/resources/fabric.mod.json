@@ -1,35 +1,35 @@
 {
 	"schemaVersion": 1,
-	"id": "examplemod",
+	"id": "brainless",
 	"version": "${version}",
-	"name": "Example Mod",
-	"description": "This mod aims to help new BTA modders.",
+	"name": "Brainless Lib",
+	"description": "This mod aims to help BTA modders giving a brain to their creatures!.",
 	"authors": [
-		"Turnip Labs"
+		"Deus/Garkatron"
 	],
 	"contact": {
-		"homepage": "",
-		"sources": ""
+		"homepage": "https://github.com/Garkatronics-MC/BTA-Brainless",
+		"sources": "https://github.com/Garkatronics-MC/BTA-Brainless"
 	},
 	"icon": "icon.png",
 	"license": "CC0-1.0",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"turniplabs.examplemod.ExampleMod"
+			"deus.brainless.Brainless"
 		],
 		"beforeGameStart": [
-			"turniplabs.examplemod.ExampleMod"
+			"deus.brainless.Brainless"
 		],
 		"afterGameStart": [
-			"turniplabs.examplemod.ExampleMod"
+			"deus.brainless.Brainless"
 		],
 		"recipesReady": [
-			"turniplabs.examplemod.ExampleMod"
+			"deus.brainless.Brainless"
 		]
 	},
 	"mixins": [
-		"examplemod.mixins.json"
+		"brainless.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=${fabricloader}",
