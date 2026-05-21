@@ -3,6 +3,7 @@ plugins {
 	alias(libs.plugins.loom)
 	alias(libs.plugins.lwjgl)
     java
+	`maven-publish`
 }
 val modVersion: Provider<String> = providers.gradleProperty("mod_version")
 val modGroup: Provider<String> = providers.gradleProperty("mod_group")
@@ -22,6 +23,7 @@ repositories {
     maven("https://maven.thesignalumproject.net/infrastructure") { name = "SignalumMavenInfrastructure" }
     maven("https://maven.thesignalumproject.net/releases") { name = "SignalumMavenReleases" }
 	maven("https://maven.thesignalumproject.net/nightly") { name = "SignalumMavenNightly" }
+	maven("https://jitpack.io")
     ivy("https://github.com/Better-than-Adventure") {
         patternLayout { artifact("[organisation]/releases/download/[revision]/[module]-bta-[revision].jar") }
         metadataSources { artifact() }
@@ -72,6 +74,14 @@ java {
 	sourceCompatibility = JavaVersion.toVersion(javaVersion.get())
 	targetCompatibility = JavaVersion.toVersion(javaVersion.get())
 	withSourcesJar()
+}
+
+publishing {
+	publications {
+		create<MavenPublication>("maven") {
+			from(components["java"])
+		}
+	}
 }
 val licenseFile = run {
 	val rootLicense = layout.projectDirectory.file("LICENSE")
