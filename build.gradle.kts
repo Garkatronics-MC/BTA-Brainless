@@ -56,9 +56,10 @@ dependencies {
 	implementation(libs.legacyLwjgl)
 	implementation(libs.patheticApi)
 	include(libs.patheticApi)
+	api(libs.patheticApi)
 	implementation(libs.patheticEngine)
 	include(libs.patheticEngine)
-
+	api(libs.patheticEngine)
 	implementation(libs.slf4jApi)
 	implementation(libs.guava)
 	implementation(libs.log4j.slf4j2.impl)
