@@ -60,6 +60,9 @@ dependencies {
 	implementation(libs.patheticEngine)
 	include(libs.patheticEngine)
 	api(libs.patheticEngine)
+	compileOnly(libs.patheticApi)
+	compileOnly(libs.patheticEngine)
+
 	implementation(libs.slf4jApi)
 	implementation(libs.guava)
 	implementation(libs.log4j.slf4j2.impl)
