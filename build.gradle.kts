@@ -55,7 +55,10 @@ dependencies {
 	implementation(libs.modMenu)
 	implementation(libs.legacyLwjgl)
 	implementation(libs.patheticApi)
+	include(libs.patheticApi)
 	implementation(libs.patheticEngine)
+	include(libs.patheticEngine)
+
 	implementation(libs.slf4jApi)
 	implementation(libs.guava)
 	implementation(libs.log4j.slf4j2.impl)
@@ -66,6 +69,7 @@ dependencies {
 
 	implementation(libs.commonsLang3)
 	include(libs.commonsLang3)
+
 }
 java {
 	toolchain {
