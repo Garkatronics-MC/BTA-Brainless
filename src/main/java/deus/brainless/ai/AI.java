@@ -121,4 +121,14 @@ public class AI {
             return this;
         }
     }
+
+	public static java.util.function.Supplier<AI> factory(
+		Consumer<AI.Brain> brainSetup,
+		Consumer<AI> queueSetup) {
+		return () -> {
+			AI ai = new AI(brainSetup);
+			queueSetup.accept(ai);
+			return ai;
+		};
+	}
 }
