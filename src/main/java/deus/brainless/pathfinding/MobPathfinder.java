@@ -88,11 +88,6 @@ public abstract class MobPathfinder extends Mob {
 	protected void updateAI() {
 		super.updateAI();
 		pathThinking();
-	}
-
-	@Override
-	public void tick() {
-		super.tick();
 		pathMotion();
 	}
 
