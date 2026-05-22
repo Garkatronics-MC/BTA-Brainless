@@ -1,13 +1,9 @@
 package deus.brainless.ai.jobs.schedulers;
 
-import deus.brainless.ai.connection.Node;
 import deus.brainless.ai.interfaces.Job;
-import deus.brainless.ai.interfaces.JobScheduler;
-import deus.brainless.ai.jobs.JobDefinition;
-import deus.brainless.ai.interfaces.Task;
 
 import java.util.*;
-import java.util.function.Consumer;
+
 public class InstantJobScheduler<CTX> extends AbstractJobScheduler<CTX> {
 
 	private final double discardThreshold;
@@ -50,6 +46,6 @@ public class InstantJobScheduler<CTX> extends AbstractJobScheduler<CTX> {
 	}
 
 	@Override public Job<CTX> current() { return current; }
-	@Override public void interruptCurrent(CTX ctx) { if (current != null) current.cancel(ctx); }
+	@Override public void interruptCurrent(CTX ctx) { if (current != null) current.onFinish(ctx); }
 	@Override public void clear() { queue.clear(); definitions.clear(); snapshot.clear(); current = null; }
 }

@@ -1,6 +1,7 @@
 package deus.brainless;
 
 import deus.brainless.ai.AI;
+import deus.brainless.ai.jobs.InlineJob;
 import deus.brainless.ai.jobs.JobDefinition;
 import deus.brainless.ai.jobs.schedulers.PersistentJobScheduler;
 import net.fabricmc.api.ModInitializer;
@@ -18,8 +19,6 @@ public class Brainless implements ModInitializer, GameStartEntrypoint, RecipeEnt
 	@Override
 	public void onInitialize() {
 		LOGGER.info("Brainless initialized.");
-
-
 	}
 
 	@Override

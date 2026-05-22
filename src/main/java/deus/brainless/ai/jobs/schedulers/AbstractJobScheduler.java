@@ -1,11 +1,9 @@
 package deus.brainless.ai.jobs.schedulers;
 
 
-import deus.brainless.ai.connection.Node;
 import deus.brainless.ai.interfaces.Job;
 import deus.brainless.ai.interfaces.JobScheduler;
 import deus.brainless.ai.jobs.JobDefinition;
-import deus.brainless.ai.interfaces.Task;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,14 +27,7 @@ public abstract class AbstractJobScheduler<CTX> implements JobScheduler<CTX> {
         definitions.add(def);
     }
 
-    protected Job<CTX> wrap(JobDefinition<CTX> def) {
-        return new Job<CTX>() {
-            public String name() { return def.name(); }
-            public void tick(CTX ctx) { def.tick().accept(ctx); }
-            public boolean isDone(CTX ctx) { return false; }
-            public void cancel(CTX ctx) { if (def.onInterrupt() != null) def.onInterrupt().run(ctx); }
-        };
-    }
+
 
     protected List<Job<CTX>> buildQueue() {
         return switch (mode) {
@@ -50,7 +41,7 @@ public abstract class AbstractJobScheduler<CTX> implements JobScheduler<CTX> {
         return definitions.stream()
             .filter(d -> d.desireNode().value > 0)
             .sorted((a, b) -> Double.compare(b.desireNode().value, a.desireNode().value))
-            .map(this::wrap)
+			.map(JobDefinition::createJob)
             .toList();
     }
 
@@ -65,9 +56,9 @@ public abstract class AbstractJobScheduler<CTX> implements JobScheduler<CTX> {
             else                                   low.add(d);
         }
 
-        high.forEach(d -> out.add(wrap(d)));
-        mid.forEach(d  -> out.add(wrap(d)));
-        low.forEach(d  -> out.add(wrap(d)));
+		high.forEach(d -> out.add(d.createJob()));
+		mid.forEach(d -> out.add(d.createJob()));
+		low.forEach(d -> out.add(d.createJob()));
         return out;
     }
 
@@ -85,7 +76,10 @@ public abstract class AbstractJobScheduler<CTX> implements JobScheduler<CTX> {
 
             for (int j = 0; j < mutable.size(); j++) {
                 acc += mutable.get(j).desireNode().value;
-                if (acc >= roll) { out.add(wrap(mutable.remove(j))); break; }
+				if (acc >= roll) {
+		            out.add(mutable.remove(j).createJob());
+		            break;
+	            }
             }
         }
         return out;

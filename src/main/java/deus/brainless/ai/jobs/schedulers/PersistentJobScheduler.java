@@ -1,8 +1,6 @@
 package deus.brainless.ai.jobs.schedulers;
 
 import deus.brainless.ai.interfaces.Job;
-import deus.brainless.ai.jobs.JobDefinition;
-import deus.brainless.ai.interfaces.JobScheduler;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -22,8 +20,8 @@ public class PersistentJobScheduler<CTX> extends AbstractJobScheduler<CTX> {
 
 	@Override
 	public void update(CTX ctx) {
-		if (current == null || current.isDone(ctx)) {
-			if (current != null) current.cancel(ctx);
+		if (current == null || current.isDone(ctx) || current.interrupt()) {
+			if (current != null) current.onFinish(ctx);
 			if (queue.isEmpty()) refill();
 			current = queue.pollFirst();
 		}
@@ -35,6 +33,6 @@ public class PersistentJobScheduler<CTX> extends AbstractJobScheduler<CTX> {
 	}
 
 	@Override public Job<CTX> current() { return current; }
-	@Override public void interruptCurrent(CTX ctx) { if (current != null) { current.cancel(ctx); current = null; } }
+	@Override public void interruptCurrent(CTX ctx) { if (current != null) { current.onFinish(ctx); current = null; } }
 	@Override public void clear() { queue.clear(); definitions.clear(); current = null; }
 }

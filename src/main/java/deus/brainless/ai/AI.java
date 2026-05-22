@@ -3,13 +3,19 @@ package deus.brainless.ai;
 import deus.brainless.ai.connection.Layer;
 import deus.brainless.ai.connection.Node;
 import deus.brainless.ai.interfaces.InputProvider;
+import deus.brainless.ai.interfaces.Job;
 import deus.brainless.ai.interfaces.JobScheduler;
+import deus.brainless.ai.jobs.InlineJob;
+import deus.brainless.ai.jobs.JobDefinition;
 import deus.brainless.ai.jobs.schedulers.AbstractJobScheduler;
 import deus.brainless.ai.jobs.schedulers.InstantJobScheduler;
 import deus.brainless.ai.jobs.schedulers.PersistentJobScheduler;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.function.ToDoubleFunction;
 
 public class AI<CTX> {
 
@@ -60,6 +66,18 @@ public class AI<CTX> {
 		brain.compute();
 		for (JobScheduler<CTX> q : queues) q.update(context);
 	}
+
+	public static <T> JobDefinition<T> define(String name,
+	                                          Node desireNode,
+	                                          Supplier<Job<T>> factory) {
+		return new JobDefinition<T>(name, desireNode, factory);
+	}
+
+	public static <T> InlineJob<T> inlineJob(String name, Consumer<T> tick, Predicate<T> isDone,
+	                                         ToDoubleFunction<T> progress, Consumer<T> onFinish) {
+		return new InlineJob<>(name,tick,isDone,progress,onFinish);
+	}
+
 
     public Brain getBrain() { return brain; }
 
