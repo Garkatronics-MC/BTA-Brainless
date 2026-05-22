@@ -24,6 +24,7 @@ public class InstantJobScheduler<CTX> extends AbstractJobScheduler<CTX> {
 			queue.clear();
 			rebuild();
 		}
+
 		if (queue.isEmpty()) rebuild();
 
 		if (!queue.isEmpty()) {
@@ -31,8 +32,10 @@ public class InstantJobScheduler<CTX> extends AbstractJobScheduler<CTX> {
 			currentJob.tick(ctx);
 
 			if (currentJob.isDone(ctx)) {
-				currentJob.onFinish(ctx);
-				currentJob = null;
+				boolean hasNext = handleJobCompletion(ctx);
+				if (hasNext && currentJob != null) {
+					currentJob.tick(ctx);
+				}
 			}
 		}
 	}

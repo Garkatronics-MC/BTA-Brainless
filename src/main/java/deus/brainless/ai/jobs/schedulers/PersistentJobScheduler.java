@@ -11,26 +11,24 @@ public class PersistentJobScheduler<CTX> extends AbstractJobScheduler<CTX> {
 	public PersistentJobScheduler() {
 		this(Mode.HIGHEST_WINS);
 	}
-
 	@Override
 	public void update(CTX ctx) {
 		if (currentJob != null && currentJob.isDone(ctx)) {
-			currentJob.onFinish(ctx);
-			currentJob = null;
-			currentDef = null;
+			boolean hasNext = handleJobCompletion(ctx);
+			if (hasNext && currentJob != null) {
+				currentJob.tick(ctx);
+				return;
+			}
 		}
 
 		JobDefinition<CTX> bestCandidate = getBestCandidate();
 
 		if (currentJob != null && bestCandidate != null && bestCandidate != currentDef) {
-
 			if (bestCandidate.getPriorityCategory() > currentDef.getPriorityCategory()) {
 				changeJob(bestCandidate, ctx);
-			}
-			else if (bestCandidate.getPriorityCategory() == currentDef.getPriorityCategory()) {
-				double currentDesire = currentDef.desireNode().value;
+			} else if (bestCandidate.getPriorityCategory() == currentDef.getPriorityCategory()) {
+				double currentDesire   = currentDef.desireNode().value;
 				double candidateDesire = bestCandidate.desireNode().value;
-
 				if (candidateDesire > currentDesire + currentDef.getInterruptionThreshold()) {
 					changeJob(bestCandidate, ctx);
 				}
@@ -45,6 +43,7 @@ public class PersistentJobScheduler<CTX> extends AbstractJobScheduler<CTX> {
 			currentJob.tick(ctx);
 		}
 	}
+
 
 	private void changeJob(JobDefinition<CTX> newDef, CTX ctx) {
 		if (currentJob != null) {

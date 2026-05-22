@@ -6,6 +6,7 @@ import deus.brainless.ai.jobs.JobDefinition;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -50,7 +51,18 @@ public abstract class AbstractJobScheduler<CTX> implements JobScheduler<CTX> {
 		definitions.clear();
 	}
 
-
+	protected boolean handleJobCompletion(CTX ctx) {
+		if (currentJob == null) return false;
+		Optional<Job<CTX>> next = currentJob.getNext();
+		currentJob.onFinish(ctx);
+		if (next.isPresent()) {
+			currentJob = next.get();
+			return true;
+		}
+		currentJob = null;
+		currentDef = null;
+		return false;
+	}
 	protected JobDefinition<CTX> getBestCandidate() {
 		if (definitions.isEmpty()) return null;
 

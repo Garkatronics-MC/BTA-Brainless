@@ -176,7 +176,11 @@ public abstract class MobPathfinder extends Mob {
 		float turnPenalty = Math.max(0.15F, 1.0F - (Math.abs(diff) / 30.0F));
 		this.moveForward = this.moveSpeed * turnPenalty;
 
-		if (dy > 0.5) this.isJumping = true;
+		if (dy > 0.5 && this.onGround) {
+			this.isJumping = true;
+		} else {
+			this.isJumping = false;
+		}
 
 		if (dist < arrivalThreshold) pathIndex++;
 	}
