@@ -1,10 +1,10 @@
 package deus.brainless;
 
 import deus.brainless.ai.AI;
-import deus.brainless.ai.JobQueue;
-import deus.brainless.pathfinding.MobPathfinder;
+import deus.brainless.ai.jobs.JobDefinition;
+import deus.brainless.ai.jobs.schedulers.PersistentJobScheduler;
 import net.fabricmc.api.ModInitializer;
-import net.minecraft.core.entity.animal.MobAnimal;
+import net.minecraft.core.entity.animal.MobSheep;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import turniplabs.halplibe.HalpLibe;

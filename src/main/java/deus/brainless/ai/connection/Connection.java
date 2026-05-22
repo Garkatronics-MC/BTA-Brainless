@@ -1,4 +1,4 @@
-package deus.brainless.ai;
+package deus.brainless.ai.connection;
 
 import java.util.function.BiFunction;
 

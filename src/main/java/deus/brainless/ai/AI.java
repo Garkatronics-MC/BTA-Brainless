@@ -1,6 +1,12 @@
 package deus.brainless.ai;
 
+import deus.brainless.ai.connection.Layer;
+import deus.brainless.ai.connection.Node;
 import deus.brainless.ai.interfaces.InputProvider;
+import deus.brainless.ai.interfaces.JobScheduler;
+import deus.brainless.ai.jobs.schedulers.AbstractJobScheduler;
+import deus.brainless.ai.jobs.schedulers.InstantJobScheduler;
+import deus.brainless.ai.jobs.schedulers.PersistentJobScheduler;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -8,7 +14,7 @@ import java.util.function.Consumer;
 public class AI<CTX> {
 
     private final Brain brain;
-    private final List<JobQueue<CTX>> queues = new ArrayList<>();
+    private final List<JobScheduler<CTX>> queues = new ArrayList<>();
 
     public static double clamp(double value) {
         return Math.max(0.0, Math.min(1.0, value));
@@ -31,22 +37,28 @@ public class AI<CTX> {
         return new AI<T>(setup);
     }
 
-    public JobQueue<CTX> queue(JobQueue.Mode mode, double discardThreshold, int preCalculateCount) {
-        JobQueue<CTX> q = new JobQueue<CTX>(mode, discardThreshold, preCalculateCount);
-        queues.add(q);
-        return q;
-    }
+	public InstantJobScheduler<CTX> queue(AbstractJobScheduler.Mode mode, double discardThreshold, int preCalculateCount) {
+		InstantJobScheduler<CTX> q = new InstantJobScheduler<>(mode, discardThreshold, preCalculateCount);
+		queues.add(q);
+		return q;
+	}
 
-    public JobQueue<CTX> queue(JobQueue.Mode mode) {
-        return queue(mode, 0.25, 3);
-    }
+	public InstantJobScheduler<CTX> queue(AbstractJobScheduler.Mode mode) {
+		return queue(mode, 0.25, 3);
+	}
+
+	public PersistentJobScheduler<CTX> persistentQueue() {
+		PersistentJobScheduler<CTX> q = new PersistentJobScheduler<>();
+		queues.add(q);
+		return q;
+	}
 
 	public void update(InputProvider provider, CTX context) {
 		InputSetter setter = new InputSetter(brain);
 		provider.fill(setter);
 
 		brain.compute();
-		for (JobQueue<CTX> q : queues) q.update(context);
+		for (JobScheduler<CTX> q : queues) q.update(context);
 	}
 
     public Brain getBrain() { return brain; }

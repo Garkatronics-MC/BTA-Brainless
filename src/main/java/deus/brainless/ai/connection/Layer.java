@@ -1,4 +1,6 @@
-package deus.brainless.ai;
+package deus.brainless.ai.connection;
+
+import deus.brainless.ai.AI;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
