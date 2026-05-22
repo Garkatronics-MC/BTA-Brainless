@@ -1,38 +1,61 @@
 package deus.brainless.ai.jobs.schedulers;
 
-import deus.brainless.ai.interfaces.Job;
-
-import java.util.ArrayDeque;
-import java.util.Deque;
+import deus.brainless.ai.jobs.JobDefinition;
 
 public class PersistentJobScheduler<CTX> extends AbstractJobScheduler<CTX> {
-
-	private final Deque<Job<CTX>> queue = new ArrayDeque<>();
-	private Job<CTX> current;
 
 	public PersistentJobScheduler(Mode mode) {
 		super(mode);
 	}
 
 	public PersistentJobScheduler() {
-		this(Mode.FIFO_TIERED);
+		this(Mode.HIGHEST_WINS);
 	}
 
 	@Override
 	public void update(CTX ctx) {
-		if (current == null || current.isDone(ctx) || current.interrupt()) {
-			if (current != null) current.onFinish(ctx);
-			if (queue.isEmpty()) refill();
-			current = queue.pollFirst();
+		if (currentJob != null && currentJob.isDone(ctx)) {
+			currentJob.onFinish(ctx);
+			currentJob = null;
+			currentDef = null;
 		}
-		if (current != null) current.tick(ctx);
+
+		JobDefinition<CTX> bestCandidate = getBestCandidate();
+
+		if (currentJob != null && bestCandidate != null && bestCandidate != currentDef) {
+
+			if (bestCandidate.getPriorityCategory() > currentDef.getPriorityCategory()) {
+				changeJob(bestCandidate, ctx);
+			}
+			else if (bestCandidate.getPriorityCategory() == currentDef.getPriorityCategory()) {
+				double currentDesire = currentDef.desireNode().value;
+				double candidateDesire = bestCandidate.desireNode().value;
+
+				if (candidateDesire > currentDesire + currentDef.getInterruptionThreshold()) {
+					changeJob(bestCandidate, ctx);
+				}
+			}
+		}
+
+		if (currentJob == null && bestCandidate != null && bestCandidate.desireNode().value > 0) {
+			changeJob(bestCandidate, ctx);
+		}
+
+		if (currentJob != null) {
+			currentJob.tick(ctx);
+		}
 	}
 
-	private void refill() {
-		buildQueue().forEach(queue::addLast);
+	private void changeJob(JobDefinition<CTX> newDef, CTX ctx) {
+		if (currentJob != null) {
+			currentJob.onFinish(ctx);
+		}
+		this.currentDef = newDef;
+		this.currentJob = newDef.createJob();
 	}
 
-	@Override public Job<CTX> current() { return current; }
-	@Override public void interruptCurrent(CTX ctx) { if (current != null) { current.onFinish(ctx); current = null; } }
-	@Override public void clear() { queue.clear(); definitions.clear(); current = null; }
+	@Override
+	public void clear() {
+		super.clear();
+	}
 }

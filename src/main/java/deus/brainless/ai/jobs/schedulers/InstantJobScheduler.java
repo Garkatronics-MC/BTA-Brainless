@@ -10,7 +10,6 @@ public class InstantJobScheduler<CTX> extends AbstractJobScheduler<CTX> {
 	private final int preCalculateCount;
 	private final Map<String, Double> snapshot = new HashMap<>();
 	private final Deque<Job<CTX>> queue = new ArrayDeque<>();
-	private Job<CTX> current;
 
 	public InstantJobScheduler(Mode mode, double discardThreshold, int preCalculateCount) {
 		super(mode);
@@ -20,13 +19,21 @@ public class InstantJobScheduler<CTX> extends AbstractJobScheduler<CTX> {
 
 	@Override
 	public void update(CTX ctx) {
-		if (shouldDiscard()) { interruptCurrent(ctx); queue.clear(); rebuild(); }
+		if (shouldDiscard()) {
+			interruptCurrent(ctx);
+			queue.clear();
+			rebuild();
+		}
 		if (queue.isEmpty()) rebuild();
 
 		if (!queue.isEmpty()) {
-			current = queue.poll();
-			current.tick(ctx);
-			if (current.isDone(ctx)) current = null;
+			currentJob = queue.poll();
+			currentJob.tick(ctx);
+
+			if (currentJob.isDone(ctx)) {
+				currentJob.onFinish(ctx);
+				currentJob = null;
+			}
 		}
 	}
 
@@ -45,7 +52,10 @@ public class InstantJobScheduler<CTX> extends AbstractJobScheduler<CTX> {
 		return delta >= discardThreshold;
 	}
 
-	@Override public Job<CTX> current() { return current; }
-	@Override public void interruptCurrent(CTX ctx) { if (current != null) current.onFinish(ctx); }
-	@Override public void clear() { queue.clear(); definitions.clear(); snapshot.clear(); current = null; }
+	@Override
+	public void clear() {
+		super.clear();
+		queue.clear();
+		snapshot.clear();
+	}
 }
