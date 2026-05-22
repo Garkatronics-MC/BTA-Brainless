@@ -18,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class MobPathfinder extends Mob {
@@ -33,6 +34,7 @@ public abstract class MobPathfinder extends Mob {
 	protected Pathfinder pathfinder = null;
 	@Nullable
 	private TilePos targetTilePos = null;
+	private TilePos lastTargetTilePos = null;
 	@Nullable
 	private Path currentPath = null;
 	@Nullable
@@ -55,10 +57,17 @@ public abstract class MobPathfinder extends Mob {
 
 	public void setTarget(@Nullable TilePos target) {
 		if (target == null || target.equals(this.targetTilePos)) return;
+		this.lastTargetTilePos = this.targetTilePos;
 		this.targetTilePos = target;
 		invalidatePath("target changed");
 	}
 
+	public Optional<TilePos> getTargetTilePos() {
+		if (targetTilePos != null) {
+			return Optional.of(new TilePos(targetTilePos));
+		}
+		return Optional.empty();
+	}
 
 	public boolean hasPath() {
 		return pathValid && currentPath != null;
@@ -101,7 +110,13 @@ public abstract class MobPathfinder extends Mob {
 		if (dx * dx + dy * dy + dz * dz <= arrivalThreshold * arrivalThreshold) return;
 
 		pathRetryTimer++;
-		if (pathValid && pathRetryTimer <= recomputeInterval) return;
+
+		boolean targetChanged =
+			currentPath == null ||
+				nodes == null ||
+				!targetTilePos.equals(lastTargetTilePos);
+
+		if (pathValid && pathRetryTimer < recomputeInterval && !targetChanged) return;
 
 		PathPosition start = new PathPosition((int) x, (int) y, (int) z);
 		PathPosition target = new PathPosition(targetTilePos.x, targetTilePos.y, targetTilePos.z);

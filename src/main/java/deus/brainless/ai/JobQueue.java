@@ -1,5 +1,7 @@
 package deus.brainless.ai;
 
+import deus.brainless.ai.interfaces.JobTask;
+
 import java.util.*;
 
 /**
@@ -7,7 +9,7 @@ import java.util.*;
  * On each update, compares current desires against snapshot.
  * If total delta exceeds threshold, discards and recalculates.
  */
-public class JobQueue {
+public class JobQueue<CTX> {
 
     public enum Mode {
         /** Highest desire always goes first. */
@@ -23,11 +25,11 @@ public class JobQueue {
     private final int preCalculateCount;
     private final Random random = new Random();
 
-    private final List<JobDefinition> definitions = new ArrayList<>();
-    private final Deque<Job> queue = new ArrayDeque<>();
+    private final List<JobDefinition<CTX>> definitions = new ArrayList<>();
+    private final Deque<Job<CTX>> queue = new ArrayDeque<>();
     private final Map<String, Double> snapshot = new HashMap<>();
 
-    private Job current = null;
+    private Job<CTX> current = null;
 
     /**
      * @param mode              how jobs are sorted
@@ -44,21 +46,21 @@ public class JobQueue {
         this(mode, 0.25, 3);
     }
 
-    public void register(String name, Node desireNode, Runnable task) {
+    public void register(String name, Node desireNode, JobTask<CTX> task) {
         register(name, desireNode, task, null);
     }
 
-    public void register(String name, Node desireNode, Runnable task, Runnable onInterrupt) {
-        definitions.add(new JobDefinition(name, desireNode, task, onInterrupt));
+    public void register(String name, Node desireNode, JobTask<CTX> task, JobTask<CTX> onInterrupt) {
+        definitions.add(new JobDefinition<CTX>(name, desireNode, task, onInterrupt));
     }
 
     /**
      * Called after Brain.compute(). Checks delta, maybe rebuilds queue, executes next job.
      */
-    public void update() {
+    public void update(CTX context) {
         if (shouldDiscard()) {
             if (current != null) {
-                current.interrupt();
+                current.interrupt(context);
                 current = null;
             }
             rebuildQueue();
@@ -68,15 +70,15 @@ public class JobQueue {
 
         if (!queue.isEmpty()) {
             current = queue.poll();
-            current.run();
+            current.run(context);
         }
     }
 
-    public Job getCurrent() {
+    public Job<CTX> getCurrent() {
         return current;
     }
 
-    public List<Job> peekQueue() {
+    public List<Job<CTX>> peekQueue() {
         return List.copyOf(queue);
     }
 
@@ -84,7 +86,7 @@ public class JobQueue {
         if (snapshot.isEmpty()) return true;
 
         double totalDelta = 0;
-        for (JobDefinition def : definitions) {
+        for (JobDefinition<CTX> def : definitions) {
             double prev = snapshot.getOrDefault(def.name, 0.0);
             totalDelta += Math.abs(def.desireNode.value - prev);
         }
@@ -93,15 +95,15 @@ public class JobQueue {
 
     private void rebuildQueue() {
         // Take snapshot of current desires
-        for (JobDefinition def : definitions) {
+        for (JobDefinition<CTX> def : definitions) {
             snapshot.put(def.name, def.desireNode.value);
         }
 
-        List<JobDefinition> candidates = new ArrayList<>(definitions);
+        List<JobDefinition<CTX>> candidates = new ArrayList<>(definitions);
 
         queue.clear();
 
-        List<Job> built = switch (mode) {
+        List<Job<CTX>> built = switch (mode) {
             case HIGHEST_WINS -> buildHighestWins(candidates);
             case FIFO_TIERED  -> buildFifoTiered(candidates);
             case WEIGHTED_RANDOM -> buildWeightedRandom(candidates);
@@ -113,35 +115,35 @@ public class JobQueue {
         }
     }
 
-    private List<Job> buildHighestWins(List<JobDefinition> defs) {
+    private List<Job<CTX>> buildHighestWins(List<JobDefinition<CTX>> defs) {
         return defs.stream()
                 .filter(d -> d.desireNode.value > 0)
                 .sorted((a, b) -> Double.compare(b.desireNode.value, a.desireNode.value))
-                .map(d -> new Job(d.name, d.desireNode.value, d.task, d.onInterrupt))
+                .map(d -> new Job<CTX>(d.name, d.desireNode.value, d.task, d.onInterrupt))
                 .toList();
     }
 
-    private List<Job> buildFifoTiered(List<JobDefinition> defs) {
-        List<JobDefinition> high = new ArrayList<>(), mid = new ArrayList<>(), low = new ArrayList<>();
-        for (JobDefinition d : defs) {
+    private List<Job<CTX>> buildFifoTiered(List<JobDefinition<CTX>> defs) {
+        List<JobDefinition<CTX>> high = new ArrayList<>(), mid = new ArrayList<>(), low = new ArrayList<>();
+        for (JobDefinition<CTX> d : defs) {
             if (d.desireNode.value <= 0) continue;
             if (d.desireNode.value >= 0.7)      high.add(d);
             else if (d.desireNode.value >= 0.3)  mid.add(d);
             else                                  low.add(d);
         }
-        List<Job> result = new ArrayList<>();
-        for (JobDefinition d : high) result.add(new Job(d.name, d.desireNode.value, d.task, d.onInterrupt));
-        for (JobDefinition d : mid)  result.add(new Job(d.name, d.desireNode.value, d.task, d.onInterrupt));
-        for (JobDefinition d : low)  result.add(new Job(d.name, d.desireNode.value, d.task, d.onInterrupt));
+        List<Job<CTX>> result = new ArrayList<>();
+        for (JobDefinition<CTX> d : high) result.add(new Job<CTX>(d.name, d.desireNode.value, d.task, d.onInterrupt));
+        for (JobDefinition<CTX> d : mid)  result.add(new Job<CTX>(d.name, d.desireNode.value, d.task, d.onInterrupt));
+        for (JobDefinition<CTX> d : low)  result.add(new Job<CTX>(d.name, d.desireNode.value, d.task, d.onInterrupt));
         return result;
     }
 
-    private List<Job> buildWeightedRandom(List<JobDefinition> defs) {
-        List<JobDefinition> pool = defs.stream()
+    private List<Job<CTX>> buildWeightedRandom(List<JobDefinition<CTX>> defs) {
+        List<JobDefinition<CTX>> pool = defs.stream()
                 .filter(d -> d.desireNode.value > 0)
                 .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
 
-        List<Job> result = new ArrayList<>();
+        List<Job<CTX>> result = new ArrayList<>();
         int picks = Math.min(preCalculateCount, pool.size());
 
         for (int i = 0; i < picks && !pool.isEmpty(); i++) {
@@ -151,8 +153,8 @@ public class JobQueue {
             for (int j = 0; j < pool.size(); j++) {
                 acc += pool.get(j).desireNode.value;
                 if (acc >= roll) {
-                    JobDefinition chosen = pool.remove(j);
-                    result.add(new Job(chosen.name, chosen.desireNode.value, chosen.task, chosen.onInterrupt));
+					JobDefinition<CTX> chosen = pool.remove(j);
+                    result.add(new Job<CTX>(chosen.name, chosen.desireNode.value, chosen.task, chosen.onInterrupt));
                     break;
                 }
             }
@@ -161,5 +163,5 @@ public class JobQueue {
     }
 
 
-    private record JobDefinition(String name, Node desireNode, Runnable task, Runnable onInterrupt) {}
+    private record JobDefinition<CTX>(String name, Node desireNode, JobTask<CTX> task, JobTask<CTX> onInterrupt) {}
 }

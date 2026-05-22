@@ -1,12 +1,14 @@
 package deus.brainless.ai;
 
+import deus.brainless.ai.interfaces.InputProvider;
+
 import java.util.*;
 import java.util.function.Consumer;
 
-public class AI {
+public class AI<CTX> {
 
     private final Brain brain;
-    private final List<JobQueue> queues = new ArrayList<>();
+    private final List<JobQueue<CTX>> queues = new ArrayList<>();
 
     public static double clamp(double value) {
         return Math.max(0.0, Math.min(1.0, value));
@@ -25,26 +27,27 @@ public class AI {
         setup.accept(brain);
     }
 
-    public static AI create(Consumer<Brain> setup) {
-        return new AI(setup);
+    public static <T> AI<T> create(Consumer<Brain> setup) {
+        return new AI<T>(setup);
     }
 
-    public JobQueue queue(JobQueue.Mode mode, double discardThreshold, int preCalculateCount) {
-        JobQueue q = new JobQueue(mode, discardThreshold, preCalculateCount);
+    public JobQueue<CTX> queue(JobQueue.Mode mode, double discardThreshold, int preCalculateCount) {
+        JobQueue<CTX> q = new JobQueue<CTX>(mode, discardThreshold, preCalculateCount);
         queues.add(q);
         return q;
     }
 
-    public JobQueue queue(JobQueue.Mode mode) {
+    public JobQueue<CTX> queue(JobQueue.Mode mode) {
         return queue(mode, 0.25, 3);
     }
 
-    public void update(Consumer<InputSetter> inputs) {
-        InputSetter setter = new InputSetter(brain);
-        inputs.accept(setter);
-        brain.compute();
-        for (JobQueue q : queues) q.update();
-    }
+	public void update(InputProvider provider, CTX context) {
+		InputSetter setter = new InputSetter(brain);
+		provider.fill(setter);
+
+		brain.compute();
+		for (JobQueue<CTX> q : queues) q.update(context);
+	}
 
     public Brain getBrain() { return brain; }
 
@@ -122,11 +125,11 @@ public class AI {
         }
     }
 
-	public static java.util.function.Supplier<AI> factory(
+	public static <T> java.util.function.Supplier<AI<T>>factory(
 		Consumer<AI.Brain> brainSetup,
-		Consumer<AI> queueSetup) {
+		Consumer<AI<T>> queueSetup) {
 		return () -> {
-			AI ai = new AI(brainSetup);
+			AI<T> ai = new AI<T>(brainSetup);
 			queueSetup.accept(ai);
 			return ai;
 		};

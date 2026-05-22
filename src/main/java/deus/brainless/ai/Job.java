@@ -1,17 +1,19 @@
 package deus.brainless.ai;
 
-public record Job(String name, double priority, Runnable task, Runnable onInterrupt) {
+import deus.brainless.ai.interfaces.JobTask;
 
-    public Job(String name, double priority, Runnable task) {
+public record Job<CTX>(String name, double priority, JobTask<CTX> task, JobTask<CTX> onInterrupt) {
+
+    public Job(String name, double priority, JobTask<CTX> task) {
         this(name, priority, task, null);
     }
 
-    public void run() {
-        task.run();
+    public void run(CTX context) {
+        task.run(context);
     }
 
-    public void interrupt() {
-        if (onInterrupt != null) onInterrupt.run();
+    public void interrupt(CTX context) {
+        if (onInterrupt != null) onInterrupt.run(context);
     }
 
     @Override
