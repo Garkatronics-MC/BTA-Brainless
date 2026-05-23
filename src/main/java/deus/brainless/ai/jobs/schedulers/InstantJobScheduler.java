@@ -9,7 +9,6 @@ public class InstantJobScheduler<CTX> extends AbstractJobScheduler<CTX> {
 	private final double discardThreshold;
 	private final int preCalculateCount;
 	private final Map<String, Double> snapshot = new HashMap<>();
-	private final Deque<Job<CTX>> queue = new ArrayDeque<>();
 
 	public InstantJobScheduler(Mode mode, double discardThreshold, int preCalculateCount) {
 		super(mode);
@@ -21,30 +20,43 @@ public class InstantJobScheduler<CTX> extends AbstractJobScheduler<CTX> {
 	public void update(CTX ctx) {
 		if (shouldDiscard()) {
 			interruptCurrent(ctx);
-			queue.clear();
-			rebuild();
+			jobQueue.clear();
+			rebuild(ctx);
 		}
 
-		if (queue.isEmpty()) rebuild();
+		if (jobQueue.isEmpty()) rebuild(ctx);
 
-		if (!queue.isEmpty()) {
-			currentJob = queue.poll();
+		if (currentJob == null && !jobQueue.isEmpty()) {
+			currentJob = jobQueue.poll();
+		}
+
+		if (currentJob != null) {
 			currentJob.tick(ctx);
-
 			if (currentJob.isDone(ctx)) {
-				boolean hasNext = handleJobCompletion(ctx);
-				if (hasNext && currentJob != null) {
+				boolean advanced = advanceQueue(ctx);
+				if (advanced && currentJob != null) {
 					currentJob.tick(ctx);
 				}
 			}
 		}
 	}
 
-	private void rebuild() {
+	private void rebuild(CTX ctx) {
+		snapshot.clear();
 		definitions.forEach(d -> snapshot.put(d.name(), d.desireNode().value));
-		List<Job<CTX>> built = buildQueue();
-		queue.clear();
-		built.stream().limit(preCalculateCount).forEach(queue::add);
+
+		definitions.stream()
+			.filter(d -> d.desireNode().value > 0)
+			.sorted((a, b) -> Double.compare(b.desireNode().value, a.desireNode().value))
+			.limit(preCalculateCount)
+			.forEach(def -> jobQueue.addAll(def.createJobs()));
+
+		currentDef = definitions.stream()
+			.filter(d -> d.desireNode().value > 0)
+			.max(Comparator.comparingDouble(d -> d.desireNode().value))
+			.orElse(null);
+
+		currentJob = jobQueue.poll();
 	}
 
 	private boolean shouldDiscard() {
@@ -58,7 +70,6 @@ public class InstantJobScheduler<CTX> extends AbstractJobScheduler<CTX> {
 	@Override
 	public void clear() {
 		super.clear();
-		queue.clear();
 		snapshot.clear();
 	}
 }

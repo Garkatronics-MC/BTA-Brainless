@@ -11,50 +11,35 @@ public class PersistentJobScheduler<CTX> extends AbstractJobScheduler<CTX> {
 	public PersistentJobScheduler() {
 		this(Mode.HIGHEST_WINS);
 	}
+
 	@Override
 	public void update(CTX ctx) {
 		if (currentJob != null && currentJob.isDone(ctx)) {
-			boolean hasNext = handleJobCompletion(ctx);
-			if (hasNext && currentJob != null) {
+			boolean advanced = advanceQueue(ctx);
+			if (advanced && currentJob != null) {
 				currentJob.tick(ctx);
 				return;
 			}
 		}
 
-		JobDefinition<CTX> bestCandidate = getBestCandidate();
+		JobDefinition<CTX> best = getBestCandidate();
 
-		if (currentJob != null && bestCandidate != null && bestCandidate != currentDef) {
-			if (bestCandidate.getPriorityCategory() > currentDef.getPriorityCategory()) {
-				changeJob(bestCandidate, ctx);
-			} else if (bestCandidate.getPriorityCategory() == currentDef.getPriorityCategory()) {
-				double currentDesire   = currentDef.desireNode().value;
-				double candidateDesire = bestCandidate.desireNode().value;
-				if (candidateDesire > currentDesire + currentDef.getInterruptionThreshold()) {
-					changeJob(bestCandidate, ctx);
-				}
+		if (currentJob != null && best != null && best != currentDef) {
+			boolean higherCategory = best.getPriorityCategory() > currentDef.getPriorityCategory();
+			boolean sameCategory = best.getPriorityCategory() == currentDef.getPriorityCategory();
+			boolean desireGap = best.desireNode().value > currentDef.desireNode().value + currentDef.getInterruptionThreshold();
+
+			if (higherCategory || (sameCategory && desireGap)) {
+				loadDefinition(best, ctx);
 			}
 		}
 
-		if (currentJob == null && bestCandidate != null && bestCandidate.desireNode().value > 0) {
-			changeJob(bestCandidate, ctx);
+		if (currentJob == null && best != null && best.desireNode().value > 0) {
+			loadDefinition(best, ctx);
 		}
 
 		if (currentJob != null) {
 			currentJob.tick(ctx);
 		}
-	}
-
-
-	private void changeJob(JobDefinition<CTX> newDef, CTX ctx) {
-		if (currentJob != null) {
-			currentJob.onFinish(ctx);
-		}
-		this.currentDef = newDef;
-		this.currentJob = newDef.createJob();
-	}
-
-	@Override
-	public void clear() {
-		super.clear();
 	}
 }

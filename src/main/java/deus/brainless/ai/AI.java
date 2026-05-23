@@ -67,10 +67,13 @@ public class AI<CTX> {
 		for (JobScheduler<CTX> q : queues) q.update(context);
 	}
 
-	public static <T> JobDefinition<T> define(String name,
-	                                          Node desireNode,
-	                                          Supplier<Job<T>> factory) {
-		return new JobDefinition<T>(name, desireNode, factory);
+	public static <CTX> JobDefinition<CTX> define(String name, Node node, Supplier<List<Job<CTX>>> factory) {
+		return new JobDefinition<>(name, node, factory);
+	}
+
+	@SafeVarargs
+	public static <CTX> Supplier<List<Job<CTX>>> chain(Job<CTX>... jobs) {
+		return () -> List.of(jobs);
 	}
 
 	public static <T> InlineJob<T> inlineJob(String name, Consumer<T> tick, Predicate<T> isDone,

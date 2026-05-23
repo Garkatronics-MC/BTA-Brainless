@@ -27,5 +27,20 @@ public class InlineJob<CTX> implements Job<CTX> {
     @Override public double progress(CTX ctx) { return progress.applyAsDouble(ctx); }
 	@Override public void onFinish(CTX ctx) { onFinish.accept(ctx); }
 
+	@Override
+	public String parentJobName() {
+		return "noparenth";
+	}
+
+	@Override
+	public boolean hasParent() {
+		return false;
+	}
+
+	@Override
+	public void setParent(String parent) {
+
+	}
+
 
 }
