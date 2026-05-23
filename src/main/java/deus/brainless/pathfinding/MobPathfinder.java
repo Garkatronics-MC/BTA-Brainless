@@ -101,6 +101,8 @@ public abstract class MobPathfinder extends Mob {
 	}
 
 	protected void pathThinking() {
+		if (!this.onGround) return;
+
 		if (targetTilePos == null) return;
 		if (computing.get()) return;
 
@@ -122,16 +124,22 @@ public abstract class MobPathfinder extends Mob {
 		PathPosition target = new PathPosition(targetTilePos.x, targetTilePos.y, targetTilePos.z);
 
 		computing.set(true);
-		pathfinder.findPath(start, target).ifPresent(result -> {
-			computing.set(false);
-			if (result.successful()) {
+		pathfinder.findPath(start, target)
+			.ifPresent(result -> {
+				computing.set(false);
 				applyPath(result.getPath());
-				Brainless.LOGGER.debug("[AI] PATH FOUND length={}", currentPath.length());
-			} else {
-				Brainless.LOGGER.debug("[AI] PATH FAILED start={} target={}", start, target);
+				Brainless.LOGGER.debug("[AI] PATH FOUND length={}", result.getPath().length());
+			})
+			.orElse(result -> {
+				computing.set(false);
+				Brainless.LOGGER.debug("[AI] PATH FAILED start={} target={} status={}", start, target, result);
 				pathRetryTimer = recomputeInterval / 2;
-			}
-		});
+			})
+			.exceptionally(ex -> {
+				computing.set(false);
+				Brainless.LOGGER.error("[AI] PATH EXCEPTION", ex);
+				pathRetryTimer = recomputeInterval / 2;
+			});
 	}
 
 	private void applyPath(Path path) {
@@ -140,6 +148,7 @@ public abstract class MobPathfinder extends Mob {
 		this.pathValid = true;
 		this.pathRetryTimer = 0;
 		this.pathIndex = 0;
+		this.lastTargetTilePos = this.targetTilePos;
 	}
 
 	private void invalidatePath(String reason) {
