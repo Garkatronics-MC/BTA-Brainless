@@ -1,11 +1,6 @@
 package deus.brainless;
 
-import deus.brainless.ai.AI;
-import deus.brainless.ai.jobs.InlineJob;
-import deus.brainless.ai.jobs.JobDefinition;
-import deus.brainless.ai.jobs.schedulers.PersistentJobScheduler;
 import net.fabricmc.api.ModInitializer;
-import net.minecraft.core.entity.animal.MobSheep;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import turniplabs.halplibe.HalpLibe;
@@ -19,6 +14,7 @@ public class Brainless implements ModInitializer, GameStartEntrypoint, RecipeEnt
 	@Override
 	public void onInitialize() {
 		LOGGER.info("Brainless initialized.");
+
 
 
 	}
