@@ -49,7 +49,7 @@ public class InstantJobScheduler<CTX> extends AbstractJobScheduler<CTX> {
 			.filter(d -> d.desireNode().value > 0)
 			.sorted((a, b) -> Double.compare(b.desireNode().value, a.desireNode().value))
 			.limit(preCalculateCount)
-			.forEach(def -> jobQueue.addAll(def.createJobs()));
+			.forEach(def -> jobQueue.addAll(def.createJobs(ctx)));
 
 		currentDef = definitions.stream()
 			.filter(d -> d.desireNode().value > 0)

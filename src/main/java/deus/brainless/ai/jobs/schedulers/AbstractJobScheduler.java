@@ -67,7 +67,7 @@ public abstract class AbstractJobScheduler<CTX> implements JobScheduler<CTX> {
 		if (currentJob != null) currentJob.onFinish(ctx);
 		jobQueue.clear();
 
-		List<Job<CTX>> jobs = def.createJobs();
+		List<Job<CTX>> jobs = def.createJobs(ctx);
 		jobQueue.addAll(jobs);
 
 		currentDef = def;

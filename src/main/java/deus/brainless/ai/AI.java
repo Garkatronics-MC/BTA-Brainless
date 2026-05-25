@@ -12,10 +12,7 @@ import deus.brainless.ai.jobs.schedulers.InstantJobScheduler;
 import deus.brainless.ai.jobs.schedulers.PersistentJobScheduler;
 
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.function.ToDoubleFunction;
+import java.util.function.*;
 
 public class AI<CTX> {
 
@@ -67,7 +64,7 @@ public class AI<CTX> {
 		for (JobScheduler<CTX> q : queues) q.update(context);
 	}
 
-	public static <CTX> JobDefinition<CTX> define(String name, Node node, Supplier<List<Job<CTX>>> factory) {
+	public static <CTX> JobDefinition<CTX> define(String name, Node node,  Function<CTX, List<Job<CTX>>> factory) {
 		return new JobDefinition<>(name, node, factory);
 	}
 
