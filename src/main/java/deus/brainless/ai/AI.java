@@ -17,7 +17,7 @@ import java.util.function.*;
 public class AI<CTX> {
 
 	private final Brain brain;
-	private final List<JobScheduler<CTX>> queues = new ArrayList<>();
+	private JobScheduler<CTX> queue = null;
 
 	public static double clamp(double value) {
 		return Math.max(0.0, Math.min(1.0, value));
@@ -40,20 +40,36 @@ public class AI<CTX> {
 		return new AI<T>(setup);
 	}
 
+	/**
+	 * @apiNote It replaces existing scheduler!
+	 * @return InstantJobScheduler<CTX>
+	 */
 	public InstantJobScheduler<CTX> queue(AbstractJobScheduler.Mode mode, double discardThreshold, int preCalculateCount) {
 		InstantJobScheduler<CTX> q = new InstantJobScheduler<>(mode, discardThreshold, preCalculateCount);
-		queues.add(q);
+		queue = q;
 		return q;
 	}
 
+	/**
+	 * @apiNote It replaces existing scheduler!
+	 * @return InstantJobScheduler<CTX>
+	 */
 	public InstantJobScheduler<CTX> queue(AbstractJobScheduler.Mode mode) {
 		return queue(mode, 0.25, 3);
 	}
 
+	/**
+	 * @apiNote It replaces existing scheduler!
+	 * @return PersistentJobScheduler<CTX>
+	 */
 	public PersistentJobScheduler<CTX> persistentQueue() {
 		PersistentJobScheduler<CTX> q = new PersistentJobScheduler<>();
-		queues.add(q);
+		queue = q;
 		return q;
+	}
+
+	public JobScheduler<CTX> getQueue() {
+		return queue;
 	}
 
 	public void update(InputProvider provider, CTX context) {
@@ -61,7 +77,7 @@ public class AI<CTX> {
 		provider.fill(setter);
 
 		brain.compute();
-		for (JobScheduler<CTX> q : queues) q.update(context);
+		if (queue != null) queue.update(context);
 	}
 
 	public static <CTX> JobDefinition<CTX> define(String name, Node node,  Function<CTX, List<Job<CTX>>> factory) {

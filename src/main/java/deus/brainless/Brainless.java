@@ -14,9 +14,6 @@ public class Brainless implements ModInitializer, GameStartEntrypoint, RecipeEnt
 	@Override
 	public void onInitialize() {
 		LOGGER.info("Brainless initialized.");
-
-
-
 	}
 
 	@Override
