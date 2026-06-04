@@ -13,6 +13,7 @@ public class FiniteStateMachine<T, C> {
 	private final Map<T, Function<C, T>> transitions = new HashMap<>();
 	private final Map<T, BiConsumer<C, T>> onEnter = new HashMap<>(); // (ctx, from)
 	private final Map<T, BiConsumer<C, T>> onExit = new HashMap<>(); // (ctx, to)
+	private Consumer<C> always = null;
 
 	private T current;
 	private T terminal;
@@ -80,6 +81,7 @@ public class FiniteStateMachine<T, C> {
 	 */
 	public void update(C ctx) {
 		if (isDone()) return;
+		if (always != null) always.accept(ctx);
 
 		Consumer<C> action = actions.get(current);
 		if (action != null) action.accept(ctx);
@@ -98,6 +100,27 @@ public class FiniteStateMachine<T, C> {
 
 		BiConsumer<C, T> enter = onEnter.get(current);
 		if (enter != null) enter.accept(ctx, previous);
+	}
+
+	/**
+	 * Force change to another state
+	 */
+	public void forceState(C ctx, T state) {
+		if (state == current) return;
+		BiConsumer<C, T> exit = onExit.get(current);
+		if (exit != null) exit.accept(ctx, state);
+		T prev = current;
+		current = state;
+		BiConsumer<C, T> enter = onEnter.get(current);
+		if (enter != null) enter.accept(ctx, prev);
+	}
+
+	/**
+	 * Executed always
+	 */
+	public FiniteStateMachine<T, C> onAlways(Consumer<C> handler) {
+		this.always = handler;
+		return this;
 	}
 
 	/**
