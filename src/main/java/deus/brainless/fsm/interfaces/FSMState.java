@@ -1,4 +1,4 @@
-package deus.brainless.ai.fsm.interfaces;
+package deus.brainless.fsm.interfaces;
 
 public interface FSMState {
     String name();
