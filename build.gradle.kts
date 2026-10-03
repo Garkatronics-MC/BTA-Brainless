@@ -58,9 +58,9 @@ dependencies {
 	localRuntime("org.lwjgl:lwjgl-opengl::$lwjglNatives")
 	localRuntime("org.lwjgl:lwjgl-stb::$lwjglNatives")
 
-	implementation(libs.patheticApi)
+	api(libs.patheticApi)
 	include(libs.patheticApi)
-	implementation(libs.patheticEngine)
+	api(libs.patheticEngine)
 	include(libs.patheticEngine)
 
 }
