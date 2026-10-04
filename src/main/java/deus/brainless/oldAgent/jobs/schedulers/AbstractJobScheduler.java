@@ -6,6 +6,7 @@ import deus.brainless.oldAgent.jobs.JobDefinition;
 
 import java.util.*;
 
+@Deprecated(since = "1.5.0", forRemoval = true)
 public abstract class AbstractJobScheduler<CTX> implements JobScheduler<CTX> {
 
 	public enum Mode { HIGHEST_WINS, FIFO_TIERED, WEIGHTED_RANDOM }

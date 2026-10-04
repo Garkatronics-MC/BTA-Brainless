@@ -2,7 +2,6 @@ package deus.brainless.agent;
 
 
 import java.util.function.BiFunction;
-import java.util.function.DoubleConsumer;
 
 public class MixBuilder<C> {
 
@@ -65,20 +64,20 @@ public class MixBuilder<C> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public MixBuilder<C> onRange(double min, double max, Action<C> action) {
-		node.output(min, max, (ctx, v) -> action.run((C) ctx, v));
+	public MixBuilder<C> onRange(double min, double max, Reaction<C> reaction) {
+		node.output(min, max, (ctx, v) -> reaction.run((C) ctx, v));
 		return this;
 	}
 
-	public MixBuilder<C> onHigh(Action<C> action)   { return onRange(0.7, 1.0, action); }
-	public MixBuilder<C> onMedium(Action<C> action) { return onRange(0.3, 0.7, action); }
-	public MixBuilder<C> onLow(Action<C> action)    { return onRange(0.0, 0.3, action); }
+	public MixBuilder<C> onHigh(Reaction<C> reaction)   { return onRange(0.7, 1.0, reaction); }
+	public MixBuilder<C> onMedium(Reaction<C> reaction) { return onRange(0.3, 0.7, reaction); }
+	public MixBuilder<C> onLow(Reaction<C> reaction)    { return onRange(0.0, 0.3, reaction); }
 
-	public MixBuilder<C> above(double t, Action<C> action) { return onRange(t, 1.01, action); }
-	public MixBuilder<C> below(double t, Action<C> action) { return onRange(0.0, t, action); }
+	public MixBuilder<C> above(double t, Reaction<C> reaction) { return onRange(t, 1.01, reaction); }
+	public MixBuilder<C> below(double t, Reaction<C> reaction) { return onRange(0.0, t, reaction); }
 
-	public MixBuilder<C> onExact(double value, double epsilon, Action<C> action) {
-		return onRange(value - epsilon, value + epsilon, action);
+	public MixBuilder<C> onExact(double value, double epsilon, Reaction<C> reaction) {
+		return onRange(value - epsilon, value + epsilon, reaction);
 	}
 
 	public Node node() { return node; }

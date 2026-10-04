@@ -77,8 +77,8 @@ public class Node {
 		canceledBy(min, max, inhibitor, 0.5);
 	}
 
-	void output(double min, double max, Action<Object> action) {
-		outputs.add(new OutputAction(min, max, action));
+	void output(double min, double max, Reaction<Object> reaction) {
+		outputs.add(new OutputAction(min, max, reaction));
 	}
 
 
@@ -108,7 +108,7 @@ public class Node {
 			if (value >= c.min && value <= c.max && s.get(c.inhibitor) >= c.threshold) return;
 		}
 		for (OutputAction out : outputs) {
-			if (value >= out.min && value <= out.max) out.action.run(ctx, value);
+			if (value >= out.min && value <= out.max) out.reaction.run(ctx, value);
 		}
 	}
 
@@ -121,7 +121,7 @@ public class Node {
 		return isInput;
 	}
 
-	private record OutputAction(double min, double max, Action<Object> action) {}
+	private record OutputAction(double min, double max, Reaction<Object> reaction) {}
 
 	private record Cancellation(double min, double max, int inhibitor, double threshold) {}
 }

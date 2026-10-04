@@ -8,16 +8,19 @@ public class Agent<C> {
 	protected final State state;
 	protected final C context;
 
-	public Agent(AgentTemplate<C> template, C context) {
+	public Agent(AgentTemplate<C> template, State state, C context) {
 		this.template = template;
-		this.state = template.newState();
+		this.state = state;
 		this.context = context;
+	}
+
+	public Agent(AgentTemplate<C> template, C context) {
+		this(template, template.newState(), context);
 	}
 
 	public void compute() {
 		template.compute(state, context);
 	}
-
 
 	public void reset() {
 		template.getNodes().values().forEach(n -> state.set(n.index(), n.isInput() ? n.initialValue() : 0));
@@ -27,19 +30,20 @@ public class Agent<C> {
 		return this.state.copy();
 	}
 
-	public Agent cloneAgent() {
-		return new Agent(template, state.copy());
+	public Agent<C> cloneAgent() {
+		return new Agent<>(template, this.context);
 	}
 
 	public double get(String name) {
 		return state.get(template.getNode(name).index());
 	}
 
-	public void set(String name, double value) {
+	public Agent<C> set(String name, double value) {
 		state.set(template.getNode(name).index(), value);
+		return this;
 	}
 
-	public AgentTemplate template() {
+	public AgentTemplate<C> template() {
 		return template;
 	}
 

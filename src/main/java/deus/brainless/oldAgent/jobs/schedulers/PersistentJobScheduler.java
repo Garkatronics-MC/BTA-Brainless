@@ -2,6 +2,7 @@ package deus.brainless.oldAgent.jobs.schedulers;
 
 import deus.brainless.oldAgent.jobs.JobDefinition;
 
+@Deprecated(since = "1.5.0", forRemoval = true)
 public class PersistentJobScheduler<CTX> extends AbstractJobScheduler<CTX> {
 
 	public PersistentJobScheduler(Mode mode) {

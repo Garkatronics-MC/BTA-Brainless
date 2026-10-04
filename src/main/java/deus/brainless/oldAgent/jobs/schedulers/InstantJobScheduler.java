@@ -2,6 +2,7 @@ package deus.brainless.oldAgent.jobs.schedulers;
 
 import java.util.*;
 
+@Deprecated(since = "1.5.0", forRemoval = true)
 public class InstantJobScheduler<CTX> extends AbstractJobScheduler<CTX> {
 
 	private final double discardThreshold;

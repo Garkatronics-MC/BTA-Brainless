@@ -1,6 +1,6 @@
 package deus.brainless.oldAgent.interfaces;
 
-
+@Deprecated(since = "1.5.0", forRemoval = true)
 public interface Job<CTX> {
 	String name();
 	void tick(CTX ctx);

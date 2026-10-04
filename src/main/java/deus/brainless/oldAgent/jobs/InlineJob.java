@@ -5,6 +5,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.ToDoubleFunction;
 
+@Deprecated(since = "1.5.0", forRemoval = true)
 public class InlineJob<CTX> implements Job<CTX> {
     private final String name;
     private final Consumer<CTX> tick;

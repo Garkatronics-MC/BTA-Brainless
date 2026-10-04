@@ -6,6 +6,7 @@ import deus.brainless.oldAgent.interfaces.Job;
 import java.util.List;
 import java.util.function.Function;
 
+@Deprecated(since = "1.5.0", forRemoval = true)
 public class JobDefinition<CTX> {
 	private final String name;
 	private final Node desireNode;
