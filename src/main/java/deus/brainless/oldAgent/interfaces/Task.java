@@ -1,4 +1,4 @@
-package deus.brainless.ai.interfaces;
+package deus.brainless.oldAgent.interfaces;
 
 @FunctionalInterface
 public interface Task<CTX> {

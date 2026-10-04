@@ -1,7 +1,8 @@
-package deus.brainless.ai.connection;
+package deus.brainless.oldAgent.connection;
 
 import java.util.function.BiFunction;
 
+@Deprecated(since = "1.5.0", forRemoval = true)
 public class Connection {
     public final Node from;
     public final Node to;

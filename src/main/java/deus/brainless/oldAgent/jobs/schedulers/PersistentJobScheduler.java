@@ -1,6 +1,6 @@
-package deus.brainless.ai.jobs.schedulers;
+package deus.brainless.oldAgent.jobs.schedulers;
 
-import deus.brainless.ai.jobs.JobDefinition;
+import deus.brainless.oldAgent.jobs.JobDefinition;
 
 public class PersistentJobScheduler<CTX> extends AbstractJobScheduler<CTX> {
 

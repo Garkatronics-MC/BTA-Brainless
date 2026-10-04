@@ -1,10 +1,11 @@
-package deus.brainless.ai.connection;
+package deus.brainless.oldAgent.connection;
 
-import deus.brainless.ai.AI;
+import deus.brainless.oldAgent.AI;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+@Deprecated(since = "1.5.0", forRemoval = true)
 public class Layer {
 
     private final String name;

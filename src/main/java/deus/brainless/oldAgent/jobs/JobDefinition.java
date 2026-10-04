@@ -1,11 +1,10 @@
-package deus.brainless.ai.jobs;
+package deus.brainless.oldAgent.jobs;
 
-import deus.brainless.ai.connection.Node;
-import deus.brainless.ai.interfaces.Job;
+import deus.brainless.oldAgent.connection.Node;
+import deus.brainless.oldAgent.interfaces.Job;
 
 import java.util.List;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class JobDefinition<CTX> {
 	private final String name;

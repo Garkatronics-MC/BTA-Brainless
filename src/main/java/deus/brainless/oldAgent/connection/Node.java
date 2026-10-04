@@ -1,11 +1,12 @@
-package deus.brainless.ai.connection;
+package deus.brainless.oldAgent.connection;
 
-import deus.brainless.ai.AI;
+import deus.brainless.oldAgent.AI;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 
+@Deprecated(since = "1.5.0", forRemoval = true)
 public class Node {
 
     public double value;

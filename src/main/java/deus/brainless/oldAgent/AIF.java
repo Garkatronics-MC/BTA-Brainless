@@ -1,8 +1,9 @@
-package deus.brainless.ai;
+package deus.brainless.oldAgent;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+@Deprecated(since = "1.5.0")
 public class AIF<CTX> implements Supplier<AI<CTX>> {
 
 	private final Consumer<AI.Brain> brainConfig;

@@ -1,6 +1,5 @@
-package deus.brainless.ai.interfaces;
+package deus.brainless.oldAgent.interfaces;
 
-import java.util.Optional;
 
 public interface Job<CTX> {
 	String name();

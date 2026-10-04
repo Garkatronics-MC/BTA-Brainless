@@ -1,11 +1,10 @@
-package deus.brainless.ai.jobs.schedulers;
+package deus.brainless.oldAgent.jobs.schedulers;
 
-import deus.brainless.ai.interfaces.Job;
-import deus.brainless.ai.interfaces.JobScheduler;
-import deus.brainless.ai.jobs.JobDefinition;
+import deus.brainless.oldAgent.interfaces.Job;
+import deus.brainless.oldAgent.interfaces.JobScheduler;
+import deus.brainless.oldAgent.jobs.JobDefinition;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public abstract class AbstractJobScheduler<CTX> implements JobScheduler<CTX> {
 

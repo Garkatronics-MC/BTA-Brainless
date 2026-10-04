@@ -1,6 +1,6 @@
-package deus.brainless.ai.interfaces;
+package deus.brainless.oldAgent.interfaces;
 
-import deus.brainless.ai.jobs.JobDefinition;
+import deus.brainless.oldAgent.jobs.JobDefinition;
 
 public interface JobScheduler<CTX> {
 

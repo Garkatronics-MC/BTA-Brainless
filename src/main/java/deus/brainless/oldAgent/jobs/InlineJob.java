@@ -1,6 +1,6 @@
-package deus.brainless.ai.jobs;
+package deus.brainless.oldAgent.jobs;
 
-import deus.brainless.ai.interfaces.Job;
+import deus.brainless.oldAgent.interfaces.Job;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.ToDoubleFunction;

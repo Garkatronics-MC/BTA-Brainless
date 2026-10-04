@@ -1,19 +1,20 @@
-package deus.brainless.ai;
+package deus.brainless.oldAgent;
 
-import deus.brainless.ai.connection.Layer;
-import deus.brainless.ai.connection.Node;
-import deus.brainless.ai.interfaces.InputProvider;
-import deus.brainless.ai.interfaces.Job;
-import deus.brainless.ai.interfaces.JobScheduler;
-import deus.brainless.ai.jobs.InlineJob;
-import deus.brainless.ai.jobs.JobDefinition;
-import deus.brainless.ai.jobs.schedulers.AbstractJobScheduler;
-import deus.brainless.ai.jobs.schedulers.InstantJobScheduler;
-import deus.brainless.ai.jobs.schedulers.PersistentJobScheduler;
+import deus.brainless.oldAgent.connection.Layer;
+import deus.brainless.oldAgent.connection.Node;
+import deus.brainless.oldAgent.interfaces.InputProvider;
+import deus.brainless.oldAgent.interfaces.Job;
+import deus.brainless.oldAgent.interfaces.JobScheduler;
+import deus.brainless.oldAgent.jobs.InlineJob;
+import deus.brainless.oldAgent.jobs.JobDefinition;
+import deus.brainless.oldAgent.jobs.schedulers.AbstractJobScheduler;
+import deus.brainless.oldAgent.jobs.schedulers.InstantJobScheduler;
+import deus.brainless.oldAgent.jobs.schedulers.PersistentJobScheduler;
 
 import java.util.*;
 import java.util.function.*;
 
+@Deprecated(since = "1.5.0", forRemoval = true)
 public class AI<CTX> {
 
 	private final Brain brain;

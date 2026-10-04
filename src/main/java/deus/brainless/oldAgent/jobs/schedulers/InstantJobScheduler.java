@@ -1,6 +1,4 @@
-package deus.brainless.ai.jobs.schedulers;
-
-import deus.brainless.ai.interfaces.Job;
+package deus.brainless.oldAgent.jobs.schedulers;
 
 import java.util.*;
 
