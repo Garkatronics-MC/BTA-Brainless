@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import java.util.*;
+import java.util.concurrent.CompletionException;
 
 public class SystemOne {
 
@@ -173,4 +174,7 @@ public class SystemOne {
 		}
 	}
 
+	public static Throwable unwrap(Throwable t) {
+		return (t instanceof CompletionException && t.getCause() != null) ? t.getCause() : t;
+	}
 }

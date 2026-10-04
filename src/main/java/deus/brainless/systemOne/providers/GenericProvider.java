@@ -2,6 +2,7 @@ package deus.brainless.systemOne.providers;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import deus.brainless.Brainless;
 import deus.brainless.systemOne.SystemOne;
 import deus.brainless.systemOne.SystemOneException;
 import deus.brainless.systemOne.SystemOneProvider;
@@ -18,8 +19,6 @@ import java.util.concurrent.TimeUnit;
 
 public class GenericProvider implements SystemOneProvider {
 
-	public static final String DEFAULT_URL = "https://api.typesafe.ai/v1/systemone";
-	public static final String DEFAULT_KEY_ENV = "SYSTEM_ONE_API_KEY";
 
 	private static final int MAX_ATTEMPTS = 3;
 
@@ -30,15 +29,15 @@ public class GenericProvider implements SystemOneProvider {
 		.build();
 
 	private final URI uri;
-	private final String keyName;
+	private final String apiKey;
 
 	public GenericProvider() {
-		this(DEFAULT_URL, DEFAULT_KEY_ENV);
+		this(Brainless.CONFIG.getConfig().getString("Generic.url"), Brainless.CONFIG.getConfig().getString("Generic.api_key"));
 	}
 
-	public GenericProvider(String url, String envKeyName) {
+	public GenericProvider(String url, String apiKey) {
 		this.uri = URI.create(url);
-		this.keyName = envKeyName;
+		this.apiKey = apiKey;
 	}
 
 	// ---------- Sync ----------
@@ -102,9 +101,9 @@ public class GenericProvider implements SystemOneProvider {
 
 
 	private HttpRequest buildRequest(SystemOne.Request request) {
-		String apiKey = System.getenv(keyName);
+		String apiKey = this.apiKey;
 		if (apiKey == null || apiKey.isBlank()) {
-			throw new SystemOneException("Missing API key: environment variable " + keyName + " is not set");
+			throw new SystemOneException("Missing API key: environment variable is not set");
 		}
 		try {
 			return HttpRequest.newBuilder(uri)
