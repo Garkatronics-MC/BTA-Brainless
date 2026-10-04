@@ -35,11 +35,12 @@ jomlPrimitivess = "1.10.0"
 ##########################################################################
 
 pathetic = "5.4.6"
-
+jackson = "2.18.2"
 
 [libraries]
 patheticApi = { group = "de.bsommerfeld.pathetic", name = "api", version.ref = "pathetic" }
 patheticEngine = { group = "de.bsommerfeld.pathetic", name = "engine", version.ref = "pathetic" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
 
 loader = { group = "net.fabricmc", name = "fabric-loader", version.ref = "loader" }
 halplibe = { group = "turniplabs", name = "halplibe", version.ref = "halplibe" }
@@ -55,6 +56,7 @@ lwjgl-glfw = { group = "org.lwjgl", name = "lwjgl-glfw", version.ref = "lwjgl"}
 lwjgl-openal = { group = "org.lwjgl", name = "lwjgl-openal", version.ref = "lwjgl"}
 lwjgl-opengl = { group = "org.lwjgl", name = "lwjgl-opengl", version.ref = "lwjgl"}
 lwjgl-stb = { group = "org.lwjgl", name = "lwjgl-stb", version.ref = "lwjgl"}
+
 
 [bundles]
 btaLwjgl = [ "lwjgl", "lwjgl-glfw", "lwjgl-openal", "lwjgl-opengl", "lwjgl-stb", "legacyLwjgl" ]

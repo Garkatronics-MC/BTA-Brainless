@@ -58,6 +58,9 @@ dependencies {
 	localRuntime("org.lwjgl:lwjgl-opengl::$lwjglNatives")
 	localRuntime("org.lwjgl:lwjgl-stb::$lwjglNatives")
 
+	implementation(libs.jackson.databind)
+	include(libs.jackson.databind)
+
 	api(libs.patheticApi)
 	include(libs.patheticApi)
 	api(libs.patheticEngine)

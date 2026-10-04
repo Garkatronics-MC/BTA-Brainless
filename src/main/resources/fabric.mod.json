@@ -17,15 +17,6 @@
 	"entrypoints": {
 		"main": [
 			"deus.brainless.Brainless"
-		],
-		"beforeGameStart": [
-			"deus.brainless.Brainless"
-		],
-		"afterGameStart": [
-			"deus.brainless.Brainless"
-		],
-		"recipesReady": [
-			"deus.brainless.Brainless"
 		]
 	},
 	"mixins": [
