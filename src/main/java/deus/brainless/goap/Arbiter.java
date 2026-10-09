@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import deus.brainless.agent.Intent;
+import deus.brainless.agent.Proposal;
+
 public class Arbiter {
 	private final List<Proposal> pending = new ArrayList<>();
 	private final Selector selector;

@@ -93,7 +93,7 @@ public class Sensor {
 		value = Math.min(1.0, Math.max(0.0, value));
 
 		if (useSigmoid) {
-			value = Agents.sigmoid((value - 0.5) * sigmoidFactor);
+			value = Psyches.sigmoid((value - 0.5) * sigmoidFactor);
 		}
 
 		s.set(index, value);

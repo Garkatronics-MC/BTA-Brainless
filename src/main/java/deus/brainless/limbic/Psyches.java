@@ -1,8 +1,8 @@
 package deus.brainless.limbic;
 
-public final class Agents {
+public final class Psyches {
 
-	private Agents() {}
+	private Psyches() {}
 
 	public static <C> Psyche<C> from(Temperament<C> template, C context) {
 		return new Psyche<C>(template, context);

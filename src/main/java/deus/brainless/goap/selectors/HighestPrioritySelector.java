@@ -1,5 +1,7 @@
 package deus.brainless.goap.selectors;
 
+import deus.brainless.agent.Intent;
+import deus.brainless.agent.Proposal;
 import deus.brainless.goap.*;
 
 import java.util.Comparator;
