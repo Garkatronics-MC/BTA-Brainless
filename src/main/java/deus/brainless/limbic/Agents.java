@@ -1,11 +1,11 @@
-package deus.brainless.agent;
+package deus.brainless.limbic;
 
 public final class Agents {
 
 	private Agents() {}
 
-	public static <C> Agent<C> from(AgentTemplate<C> template, C context) {
-		return new Agent<C>(template, context);
+	public static <C> Psyche<C> from(Temperament<C> template, C context) {
+		return new Psyche<C>(template, context);
 	}
 
 	public static double clamp(double value) {

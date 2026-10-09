@@ -1,10 +1,10 @@
-package deus.brainless.agent;
+package deus.brainless.limbic;
 
 public class InputBuilder<C> {
-	private final AgentTemplate<C> template;
+	private final Temperament<C> template;
 
-	InputBuilder(AgentTemplate<C> agentTemplate) {
-		this.template = agentTemplate;
+	InputBuilder(Temperament<C> temperament) {
+		this.template = temperament;
 	}
 
 	public InputBuilder<C> declare(String name, double initialValue) {

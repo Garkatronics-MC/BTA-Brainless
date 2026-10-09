@@ -1,4 +1,4 @@
-package deus.brainless.agent;
+package deus.brainless.limbic;
 
 
 import java.util.*;
@@ -6,21 +6,21 @@ import java.util.function.Consumer;
 
 /**
  * Blueprint: reusable structure (nodes, connections, layers).
- * It does not store values. To execute it, create an {@link Agent}.
+ * It does not store values. To execute it, create an {@link Psyche}.
  */
-public class AgentTemplate<C> {
+public class Temperament<C> {
 	private final List<Layer<C>> layers;
-	private final Map<String, Node> nodes;
+	private final Map<String, Sensor> nodes;
 	private int nextIndex;
 	private final InputBuilder<C> inputBuilder = new InputBuilder<C>(this);
 
-	private AgentTemplate(Map<String, Node> nodes, List<Layer<C>> layers, int nextIndex) {
+	private Temperament(Map<String, Sensor> nodes, List<Layer<C>> layers, int nextIndex) {
 		this.nodes = nodes;
 		this.layers = layers;
 		this.nextIndex = nextIndex;
 	}
 
-	public AgentTemplate() {
+	public Temperament() {
 		this(new LinkedHashMap<>(), new ArrayList<>(), 0);
 	}
 
@@ -31,12 +31,12 @@ public class AgentTemplate<C> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T extends C> AgentTemplate<T> extend() {
-		AgentTemplate<C> copy = new AgentTemplate<>();
-		nodes.forEach((name, node) -> copy.nodes.put(name, node.copy()));
+	public <T extends C> Temperament<T> extend() {
+		Temperament<C> copy = new Temperament<>();
+		nodes.forEach((name, sensor) -> copy.nodes.put(name, sensor.copy()));
 		copy.nextIndex = nextIndex;
 		layers.forEach(layer -> copy.layers.add(layer.copyFor(copy, copy.nodes)));
-		return (AgentTemplate<T>) copy;
+		return (Temperament<T>) copy;
 	}
 
 	public MixBuilder<C> edit(String name) {
@@ -53,24 +53,24 @@ public class AgentTemplate<C> {
 		return inputBuilder;
 	}
 
-	Node createNode(String name, boolean isInput) {
+	Sensor createNode(String name, boolean isInput) {
 		if (nodes.containsKey(name)) throw new IllegalArgumentException("Node already exists: " + name);
-		Node node = isInput ? Node.input(nextIndex) : Node.index(nextIndex);
+		Sensor sensor = isInput ? Sensor.input(nextIndex) : Sensor.index(nextIndex);
 		nextIndex++;
-		nodes.put(name, node);
-		return node;
+		nodes.put(name, sensor);
+		return sensor;
 	}
 
 	// (package-private)
 
-	State newState() {
-		State s = new State(size());
+	Urges newState() {
+		Urges s = new Urges(size());
 		nodes.values().forEach(n -> s.set(n.index(), n.initialValue()));
 		return s;
 	}
 
-	void compute(State state, C ctx) {
-		for (Layer<C> layer : layers) layer.compute(state, ctx);
+	void probe(Urges urges, C ctx) {
+		for (Layer<C> layer : layers) layer.compute(urges, ctx);
 	}
 
 
@@ -78,16 +78,16 @@ public class AgentTemplate<C> {
 		return nextIndex;
 	}
 
-	public Node getNode(String name) {
-		Node node = nodes.get(name);
-		if (node == null) throw new IllegalArgumentException("Node not found: " + name);
-		return node;
+	public Sensor getNode(String name) {
+		Sensor sensor = nodes.get(name);
+		if (sensor == null) throw new IllegalArgumentException("Node not found: " + name);
+		return sensor;
 	}
 
 	/**
 	 * Read-only view for inspection/debug.
 	 */
-	public Map<String, Node> getNodes() {
+	public Map<String, Sensor> getNodes() {
 		return Collections.unmodifiableMap(nodes);
 	}
 }

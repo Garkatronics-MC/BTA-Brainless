@@ -1,15 +1,15 @@
-package deus.brainless.agent;
+package deus.brainless.limbic;
 
 
-public final class State {
+public final class Urges {
 	private final double[] values;
 
-	public State copy() {
-		State s = new State(values.length);
+	public Urges copy() {
+		Urges s = new Urges(values.length);
 		System.arraycopy(values, 0, s.values, 0, values.length);
 		return s;
 	}
-	public State(int size) { values = new double[size]; }
+	public Urges(int size) { values = new double[size]; }
 	public double get(int index)            { return values[index]; }
 	void set(int index, double value)       { values[index] = value; }
 }
