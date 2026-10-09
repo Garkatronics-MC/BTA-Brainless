@@ -1,8 +1,8 @@
-package deus.brainless.agent;
+package deus.brainless.limbic;
 
 import java.util.function.BiFunction;
 
-public record Connection(int from, int to, BiFunction<Double, Double, Double> op, double weight) {
+public record Influence(int from, int to, BiFunction<Double, Double, Double> op, double weight) {
 
 	public double apply(double accumulated, double incoming) {
 		return op.apply(accumulated, incoming * weight);
