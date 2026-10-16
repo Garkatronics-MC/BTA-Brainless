@@ -1,20 +1,23 @@
 package deus.brainless.limbic;
 
 
+import deus.brainless.drive.Drive;
+
 import java.util.*;
 import java.util.function.Consumer;
 
 /**
  * Blueprint: reusable structure (nodes, connections, layers).
- * It does not store values. To execute it, create an {@link Psyche}.
+ * It does not store values. To execute it, create a {@link Psyche}.
  */
-public class Temperament<C> {
-	private final List<Layer<C>> layers;
+public class Temperament {
+	private final List<Layer> layers;
 	private final Map<String, Sensor> nodes;
 	private int nextIndex;
-	private final InputBuilder<C> inputBuilder = new InputBuilder<C>(this);
+	private final InputBuilder inputBuilder = new InputBuilder(this);
+	private List<DriveBinding> bindings;
 
-	private Temperament(Map<String, Sensor> nodes, List<Layer<C>> layers, int nextIndex) {
+	private Temperament(Map<String, Sensor> nodes, List<Layer> layers, int nextIndex) {
 		this.nodes = nodes;
 		this.layers = layers;
 		this.nextIndex = nextIndex;
@@ -24,32 +27,37 @@ public class Temperament<C> {
 		this(new LinkedHashMap<>(), new ArrayList<>(), 0);
 	}
 
-	public void layerFirst(String name, Consumer<Layer<C>> config) {
-		Layer<C> layer = new Layer<>(name, this);
+	public void layerFirst(String name, Consumer<Layer> config) {
+		Layer layer = new Layer(name, this);
 		config.accept(layer);
 		layers.add(0, layer);
 	}
 
-	@SuppressWarnings("unchecked")
-	public <T extends C> Temperament<T> extend() {
-		Temperament<C> copy = new Temperament<>();
+	public Temperament extend() {
+		Temperament copy = new Temperament();
 		nodes.forEach((name, sensor) -> copy.nodes.put(name, sensor.copy()));
 		copy.nextIndex = nextIndex;
 		layers.forEach(layer -> copy.layers.add(layer.copyFor(copy, copy.nodes)));
-		return (Temperament<T>) copy;
+		copy.invalidateBindings();
+		return copy;
 	}
 
-	public MixBuilder<C> edit(String name) {
-		return new MixBuilder<>(getNode(name), this);
+	public MixBuilder edit(String name) {
+		return new MixBuilder(getNode(name), this);
 	}
 
-	public void layer(String name, Consumer<Layer<C>> config) {
-		Layer<C> layer = new Layer<>(name, this);
+	/** Declares a node outside any layer. Only for wires feeding a mix. */
+	public MixBuilder mix(String name) {
+		return new MixBuilder(createNode(name, false), this);
+	}
+
+	public void layer(String name, Consumer<Layer> config) {
+		Layer layer = new Layer(name, this);
 		config.accept(layer);
 		layers.add(layer);
 	}
 
-	public InputBuilder<C> inputs() {
+	public InputBuilder inputs() {
 		return inputBuilder;
 	}
 
@@ -58,7 +66,12 @@ public class Temperament<C> {
 		Sensor sensor = isInput ? Sensor.input(nextIndex) : Sensor.index(nextIndex);
 		nextIndex++;
 		nodes.put(name, sensor);
+		invalidateBindings();
 		return sensor;
+	}
+
+	void invalidateBindings() {
+		bindings = null;
 	}
 
 	// (package-private)
@@ -69,10 +82,27 @@ public class Temperament<C> {
 		return s;
 	}
 
-	void probe(Urges urges, C ctx) {
-		for (Layer<C> layer : layers) layer.compute(urges, ctx);
+	void probe(Urges urges) {
+		for (Layer layer : layers) layer.compute(urges);
 	}
 
+	/**
+	 * Every drive declaration this temperament makes, in declaration order.
+	 * Frozen on first ask; any new declaration rebuilds it.
+	 */
+	List<DriveBinding> driveBindings() {
+		if (bindings == null) {
+			List<DriveBinding> list = new ArrayList<>();
+			nodes.forEach((name, sensor) -> {
+				for (Sensor.OutputAction out : sensor.outputs()) {
+					list.add(new DriveBinding(name, sensor, out.min(), out.max(),
+						out.maxInclusive(), out.drive()));
+				}
+			});
+			bindings = List.copyOf(list);
+		}
+		return bindings;
+	}
 
 	public int size() {
 		return nextIndex;
@@ -89,5 +119,12 @@ public class Temperament<C> {
 	 */
 	public Map<String, Sensor> getNodes() {
 		return Collections.unmodifiableMap(nodes);
+	}
+
+	/** The drives this temperament knows how to ask for. */
+	public Set<Drive> declaredDrives() {
+		Set<Drive> set = new LinkedHashSet<>();
+		driveBindings().forEach(b -> set.add(b.drive()));
+		return Collections.unmodifiableSet(set);
 	}
 }

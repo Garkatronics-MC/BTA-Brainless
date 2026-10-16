@@ -1,11 +1,26 @@
 package deus.brainless.limbic;
 
+import deus.brainless.drive.Drive;
+
+import java.util.List;
+
 public final class Psyches {
 
 	private Psyches() {}
 
-	public static <C> Psyche<C> from(Temperament<C> template, C context) {
-		return new Psyche<C>(template, context);
+	public static Psyche from(Temperament template) {
+		return new Psyche(template);
+	}
+
+	public static Psyche from(Temperament template, double fallbackThreshold) {
+		return new Psyche(template, new AbsoluteThresholdPolicy(fallbackThreshold));
+	}
+
+	/**
+	 * Wraps drives declared by a template, in declaration order.
+	 */
+	public static List<Drive> declaredDrives(Temperament template) {
+		return List.copyOf(template.declaredDrives());
 	}
 
 	public static double clamp(double value) {

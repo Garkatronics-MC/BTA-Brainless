@@ -66,6 +66,9 @@ dependencies {
 	api(libs.patheticEngine)
 	include(libs.patheticEngine)
 
+	testImplementation(libs.junit)
+	testRuntimeOnly(libs.junit.launcher)
+
 }
 java {
 	toolchain {

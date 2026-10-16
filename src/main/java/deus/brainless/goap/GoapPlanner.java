@@ -6,62 +6,93 @@ import java.util.function.ToDoubleFunction;
 
 public class GoapPlanner {
 
-	private final List<GoapAction> actions;
+	private final Set<GoapAction> actions = new LinkedHashSet<>();
 
-	public GoapPlanner(List<GoapAction> actions) {
-		this.actions = actions;
+	public GoapPlanner() {}
+
+	public GoapPlanner(Collection<GoapAction> actions) {
+		this.actions.addAll(actions);
 	}
 
-	private static boolean compare(StateNode a, StateNode b) {
-		return a.f < b.f;
+	public GoapPlanner addAction(GoapAction action) {
+		actions.add(Objects.requireNonNull(action));
+		return this;
+	}
+
+	public GoapPlanner removeAction(GoapAction action) {
+		actions.remove(action);
+		return this;
+	}
+
+	public boolean hasAction(GoapAction action) {
+		return actions.contains(action);
+	}
+
+	public List<GoapAction> actions() {
+		return List.copyOf(actions);
 	}
 
 	public List<GoapAction> planFrom(StateNode node) {
 		List<GoapAction> plan = new ArrayList<>();
-		StateNode current = node;
-		while (current.parent != null) {
+
+		for (StateNode current = node; current.parent != null; current = current.parent) {
 			plan.add(current.action);
-			current = current.parent;
 		}
+
 		Collections.reverse(plan);
 		return plan;
 	}
 
-	private List<GoapAction> compute(Predicate<GoapState> isGoal, ToDoubleFunction<GoapState> heuristic, GoapState start) {
+	public Optional<List<GoapAction>> compute(
+		Predicate<GoapState> isGoal,
+		ToDoubleFunction<GoapState> heuristic,
+		GoapState start
+	) {
+
 		PriorityQueue<StateNode> open = new PriorityQueue<>();
-		HashMap<String, Double> best_g = new HashMap<>();
+		Map<String, Double> bestG = new HashMap<>();
 
 		StateNode root = new StateNode(start.toKey(), start);
 		root.f = heuristic.applyAsDouble(start);
-		best_g.put(root.id, 0.0);
+
+		bestG.put(root.id, 0.0);
 		open.add(root);
 
 		while (!open.isEmpty()) {
 			StateNode current = open.poll();
-			if (current.g < best_g.get(current.id)) continue;
 
-			if (isGoal.test(current.state)) return planFrom(current);
+			if (current.g > bestG.getOrDefault(
+				current.id, Double.POSITIVE_INFINITY)) {
+				continue;
+			}
 
-			for (GoapAction action : this.actions) {
-				if (!action.canApply(current.state)) continue;
+			if (isGoal.test(current.state)) {
+				return Optional.of(planFrom(current));
+			}
+
+			for (GoapAction action : actions) {
+				if (!action.canApply(current.state)) {
+					continue;
+				}
 
 				GoapState state = action.apply(current.state.copy());
 				StateNode next = new StateNode(state.toKey(), state);
 				next.g = current.g + action.cost(current.state);
 
-				if (best_g.containsKey(next.id) && best_g.get(next.id) <= next.g) continue;
+				if (bestG.getOrDefault(
+					next.id, Double.POSITIVE_INFINITY) <= next.g) {
+					continue;
+				}
 
 				next.parent = current;
 				next.action = action;
 				next.f = next.g + heuristic.applyAsDouble(state);
-				best_g.put(next.id, next.g);
+
+				bestG.put(next.id, next.g);
 				open.add(next);
 			}
-
 		}
 
-		throw new Error("GoapGraph: no plan found.");
-
+		return Optional.empty();
 	}
-
 }

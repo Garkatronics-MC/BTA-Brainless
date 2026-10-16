@@ -1,9 +1,11 @@
 package deus.brainless.limbic;
 
 
+import deus.brainless.drive.Drive;
+
 import java.util.function.BiFunction;
 
-public class MixBuilder<C> {
+public class MixBuilder {
 
 	private final Sensor sensor;
 	private final Temperament temperament;
@@ -13,71 +15,83 @@ public class MixBuilder<C> {
 		this.temperament = temperament;
 	}
 
-	public MixBuilder<C> add(String input, double weight) {
+	public MixBuilder add(String input, double weight) {
 		return connect(input, Influence.ADD, weight);
 	}
 
-	public MixBuilder<C> sub(String input, double weight) {
+	public MixBuilder sub(String input, double weight) {
 		return connect(input, Influence.SUB, weight);
 	}
 
-	public MixBuilder<C> mul(String input, double weight) {
+	public MixBuilder mul(String input, double weight) {
 		return connect(input, Influence.MUL, weight);
 	}
 
-	public MixBuilder<C> div(String input, double weight) {
+	public MixBuilder div(String input, double weight) {
 		return connect(input, Influence.DIV, weight);
 	}
 
-	public MixBuilder<C> max(String input, double weight) {
+	public MixBuilder max(String input, double weight) {
 		return connect(input, Influence.MAX, weight);
 	}
 
-	public MixBuilder<C> min(String input, double weight) {
+	public MixBuilder min(String input, double weight) {
 		return connect(input, Influence.MIN, weight);
 	}
 
-	public MixBuilder<C> op(String input, BiFunction<Double, Double, Double> op, double weight) {
+	public MixBuilder op(String input, BiFunction<Double, Double, Double> op, double weight) {
 		return connect(input, op, weight);
 	}
 
-	private MixBuilder<C> connect(String inputName, BiFunction<Double, Double, Double> op, double weight) {
+	private MixBuilder connect(String inputName, BiFunction<Double, Double, Double> op, double weight) {
 		Sensor inputSensor = temperament.getNode(inputName);
 		inputSensor.connect(sensor, op, weight);
 		return this;
 	}
 
-	public MixBuilder<C> sigmoid(double factor) {
+	public MixBuilder sigmoid(double factor) {
 		sensor.sigmoid(factor);
 		return this;
 	}
 
-	public MixBuilder<C> suppressedBy(String inhibitor, double threshold) {
+	public MixBuilder suppressedBy(String inhibitor, double threshold) {
 		Sensor inh = temperament.getNode(inhibitor);
 		sensor.canceledBy(threshold, 1.0, inh);
 		return this;
 	}
 
-	public MixBuilder<C> debug(String label) {
+	public MixBuilder debug(String label) {
 		sensor.onCompute(v -> System.out.printf("  [%s] = %.4f%n", label, v));
 		return this;
 	}
 
-	@SuppressWarnings("unchecked")
-	public MixBuilder<C> onRange(double min, double max, Effector<C> effector) {
-		sensor.triggerOn(min, max, (ctx, v) -> effector.run((C) ctx, v));
+	/**
+	 * Asks for {@code drive} whenever this sensor sits between {@code min} and
+	 * {@code max}, both ends included. Proposals overlapping a shared boundary
+	 * both match — declare disjoint windows if you only want one.
+	 */
+	public MixBuilder onRange(double min, double max, Drive drive) {
+		return onRange(min, max, true, drive);
+	}
+
+	/** As above, but {@code max} itself does not count. */
+	public MixBuilder onRange(double min, double max, boolean maxInclusive, Drive drive) {
+		sensor.triggerOn(min, max, maxInclusive, drive);
+		temperament.invalidateBindings();
 		return this;
 	}
 
-	public MixBuilder<C> onHigh(Effector<C> effector)   { return onRange(0.7, 1.0, effector); }
-	public MixBuilder<C> onMedium(Effector<C> effector) { return onRange(0.3, 0.7, effector); }
-	public MixBuilder<C> onLow(Effector<C> effector)    { return onRange(0.0, 0.3, effector); }
+	// The three bands are disjoint: 0.70 belongs to onHigh, not to onMedium.
 
-	public MixBuilder<C> above(double t, Effector<C> effector) { return onRange(t, 1.01, effector); }
-	public MixBuilder<C> below(double t, Effector<C> effector) { return onRange(0.0, t, effector); }
+	public MixBuilder onHigh(Drive drive)   { return onRange(0.7, 1.0, true, drive); }
+	public MixBuilder onMedium(Drive drive) { return onRange(0.3, 0.7, false, drive); }
+	public MixBuilder onLow(Drive drive)    { return onRange(0.0, 0.3, false, drive); }
 
-	public MixBuilder<C> onExact(double value, double epsilon, Effector<C> effector) {
-		return onRange(value - epsilon, value + epsilon, effector);
+	public MixBuilder above(double t, Drive drive) { return onRange(t, 1.01, drive); }
+	public MixBuilder below(double t, Drive drive) { return onRange(0.0, t, drive); }
+
+	public MixBuilder onExact(double value, double epsilon, Drive drive) {
+		return onRange(value - epsilon, value + epsilon, drive);
 	}
 
 	public Sensor node() { return sensor; }

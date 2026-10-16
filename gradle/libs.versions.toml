@@ -1,4 +1,5 @@
 [versions]
+junit = "5.10.2"
 ##########################################################################
 # Plugins
 # Check this on https://github.com/FabricMC/fabric-loom/releases/latest/
@@ -38,6 +39,8 @@ pathetic = "5.4.6"
 jackson = "2.18.2"
 
 [libraries]
+junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+junit-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 patheticApi = { group = "de.bsommerfeld.pathetic", name = "api", version.ref = "pathetic" }
 patheticEngine = { group = "de.bsommerfeld.pathetic", name = "engine", version.ref = "pathetic" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }

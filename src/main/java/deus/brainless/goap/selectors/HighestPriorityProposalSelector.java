@@ -1,7 +1,6 @@
 package deus.brainless.goap.selectors;
 
-import deus.brainless.agent.Intent;
-import deus.brainless.agent.Proposal;
+import deus.brainless.drive.Proposal;
 import deus.brainless.goap.arbitration.ArbiterConfig;
 
 import java.util.Comparator;
@@ -11,13 +10,9 @@ import java.util.Optional;
 public class HighestPriorityProposalSelector implements Selector {
 
 	@Override
-	public Optional<Proposal> select(List<Proposal> proposals, Intent current, ArbiterConfig config) {
+	public Optional<Proposal> select(List<Proposal> proposals, ArbiterConfig config) {
 		return proposals.stream()
 			.filter(p -> p.priority() >= config.minPriority())
-			.max(Comparator.comparingDouble(p -> score(p, current, config)));
-	}
-
-	private double score(Proposal p, Intent current, ArbiterConfig config) {
-		return p.intent().equals(current) ? p.priority() + config.hysteresis() : p.priority();
+			.max(Comparator.comparingDouble(Proposal::priority));
 	}
 }

@@ -1,6 +1,8 @@
 package deus.brainless.limbic;
 
 
+import deus.brainless.drive.Drive;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -77,10 +79,10 @@ public class Sensor {
 		canceledBy(min, max, inhibitor, 0.5);
 	}
 
-	void triggerOn(double min, double max, Effector<Object> effector) {
-		outputs.add(new OutputAction(min, max, effector));
+	/** Declares: while this sensor sits in that window, that drive is being asked for. */
+	void triggerOn(double min, double max, boolean maxInclusive, Drive drive) {
+		outputs.add(new OutputAction(min, max, maxInclusive, drive));
 	}
-
 
 	void compute(Urges s) {
 		if (isInput) return;
@@ -101,17 +103,22 @@ public class Sensor {
 		if (onCompute != null) onCompute.accept(value);
 	}
 
-	void executeOutputs(Urges s, Object ctx) {
-		double value = s.get(index);
-
+	/**
+	 * Whether an inhibitor is currently holding this sensor down. A silenced
+	 * sensor proposes nothing and is not eligible to be the dominant drive.
+	 */
+	boolean silenced(double value, Urges urges) {
 		for (Cancellation c : cancellations) {
-			if (value >= c.min && value <= c.max && s.get(c.inhibitor) >= c.threshold) return;
+			if (value >= c.min && value <= c.max && urges.get(c.inhibitor) >= c.threshold) return true;
 		}
-		for (OutputAction out : outputs) {
-			if (value >= out.min && value <= out.max) out.effector.run(ctx, value);
-		}
+		return false;
 	}
 
+	// Read-only view for inspection/debug.
+
+	public List<OutputAction> outputs() {
+		return List.copyOf(outputs);
+	}
 
 	public int index() {
 		return index;
@@ -121,7 +128,7 @@ public class Sensor {
 		return isInput;
 	}
 
-	private record OutputAction(double min, double max, Effector<Object> effector) {}
+	public record OutputAction(double min, double max, boolean maxInclusive, Drive drive) {}
 
 	private record Cancellation(double min, double max, int inhibitor, double threshold) {}
 }
