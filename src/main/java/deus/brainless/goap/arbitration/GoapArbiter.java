@@ -1,4 +1,4 @@
-package deus.brainless.goap;
+package deus.brainless.goap.arbitration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,14 +6,15 @@ import java.util.Optional;
 
 import deus.brainless.agent.Intent;
 import deus.brainless.agent.Proposal;
+import deus.brainless.goap.selectors.Selector;
 
-public class Arbiter {
+public class GoapArbiter {
 	private final List<Proposal> pending = new ArrayList<>();
 	private final Selector selector;
 	private final ArbiterConfig config;
 
 
-	public Arbiter(Selector selector, ArbiterConfig config) {
+	public GoapArbiter(Selector selector, ArbiterConfig config) {
 		this.selector = selector;
 		this.config = config;
 	}

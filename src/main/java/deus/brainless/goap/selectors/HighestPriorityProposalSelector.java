@@ -2,13 +2,13 @@ package deus.brainless.goap.selectors;
 
 import deus.brainless.agent.Intent;
 import deus.brainless.agent.Proposal;
-import deus.brainless.goap.*;
+import deus.brainless.goap.arbitration.ArbiterConfig;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
-public class HighestPrioritySelector implements Selector {
+public class HighestPriorityProposalSelector implements Selector {
 
 	@Override
 	public Optional<Proposal> select(List<Proposal> proposals, Intent current, ArbiterConfig config) {

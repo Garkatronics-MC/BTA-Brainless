@@ -7,7 +7,7 @@ import turniplabs.halplibe.HalpLibe;
 import turniplabs.halplibe.event.defs.CommonEvents;
 import turniplabs.halplibe.util.dependency.Key;
 
-public class Brainless implements ModInitializer{
+public class Brainless implements ModInitializer {
 	public static final String MOD_ID = HalpLibe.registerMod("brainless", true);
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 	public static ModConfig CONFIG = new ModConfig();

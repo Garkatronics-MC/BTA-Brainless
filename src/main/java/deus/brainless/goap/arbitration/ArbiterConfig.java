@@ -1,4 +1,4 @@
-package deus.brainless.goap;
+package deus.brainless.goap.arbitration;
 
 import deus.brainless.agent.Intent;
 

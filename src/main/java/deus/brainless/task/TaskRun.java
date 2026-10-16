@@ -2,7 +2,7 @@ package deus.brainless.task;
 
 import java.util.function.Consumer;
 
-// Exceptions don't spread, get converted to cancelled inner state
+// Exceptions don't spread, get converted to canceled inner state
 public final class TaskRun<O> {
 
 	public static volatile Consumer<Throwable> errorHandler = Throwable::printStackTrace;
@@ -11,6 +11,7 @@ public final class TaskRun<O> {
 	private final O origin;
 	private long ticks = 0;
 	private StopReason endedBy = null;   // Null while running
+	private boolean started = false;
 
 	public TaskRun(Task task, O origin) {
 		this.task = task;
@@ -20,6 +21,7 @@ public final class TaskRun<O> {
 	public void start() {
 		try {
 			task.start();
+			this.started = true;
 		} catch (RuntimeException e) {
 			errorHandler.accept(e);
 			finish(StopReason.FAILED);
@@ -65,9 +67,11 @@ public final class TaskRun<O> {
 		return reason == StopReason.COMPLETED ? TaskStatus.SUCCESS : TaskStatus.FAILURE;
 	}
 
-	public boolean isRunning() { return endedBy == null; }
+	public boolean isRunning() { return endedBy == null && started; }
 	public StopReason endedBy() { return endedBy; }
 	public O origin() { return origin; }
 
 	public long elapsed() { return ticks; }
+
+
 }
