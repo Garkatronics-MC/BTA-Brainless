@@ -7,18 +7,16 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * An impulse the body or the character demands of the agent: hunger, fear,
- * fatigue, boredom. Not a goal, not a behaviour — the want, before anyone has
- * decided what to do about it. Carries no action.
+ * An impulse the body or character demands: hunger, fear, fatigue, boredom.
+ * Not a goal and not a behaviour — the want, before anyone has decided what to
+ * do about it. Carries no action.
  *
- * <p>Open to extension: {@link #of(String)} accepts any id, including names
- * owned by other mods. The set is deliberately never closed, so consumers must
- * handle drives they do not recognise.
+ * <p>Open set: {@link #of(String)} accepts any id, including names owned by
+ * other mods, so callers must handle drives they do not recognise.
  *
  * <p>Ids are normalised (trimmed, lowercased) and instances are interned, so
- * two references to {@code "Hunger"} and {@code "hunger"} are the same drive.
- * That identity is load-bearing: it is how a consumer recognises "this is the
- * drive I am already on" rather than a new one that merely looks similar.
+ * {@code "Hunger"} and {@code "hunger"} are the same drive. Identity is how a
+ * consumer recognises "this is the drive I am already on".
  */
 public final class Drive {
 

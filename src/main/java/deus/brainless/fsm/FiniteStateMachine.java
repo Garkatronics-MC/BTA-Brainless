@@ -35,8 +35,7 @@ public class FiniteStateMachine<T, C> {
 	}
 
 	/**
-	 * Mark a state as the end.
-	 * Avoid this if you want an infinite loop.
+	 * Marks a state as terminal; the machine stops there.
 	 */
 	public FiniteStateMachine<T, C> terminal(T state) {
 		this.terminal = state;

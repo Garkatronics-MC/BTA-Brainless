@@ -1,11 +1,7 @@
 package deus.brainless.drive;
 
 /**
- * A drive paired with how badly it wants to be served, as read off the limbic
- * state. The unit of competition: arbitration chooses between proposals, never
- * between raw node values.
- *
- * <p>Carries no action. Deciding between actions that would serve the same
- * drive is the planner's job, not this record's.
+ * A drive and the urgency it is asking with, read off the limbic state.
+ * Arbitration compares proposals, never raw node values. Carries no action.
  */
 public record Proposal(Drive drive, double priority) {}

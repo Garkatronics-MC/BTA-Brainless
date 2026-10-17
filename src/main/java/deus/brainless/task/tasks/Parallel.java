@@ -10,10 +10,10 @@ import java.util.List;
 import java.util.function.Supplier;
 
 /**
- * Ejecuta varias tasks a la vez.
- * ALL: exito cuando todas tienen exito; falla en cuanto una falla.
- * ANY: exito en cuanto una tiene exito; falla cuando todas han fallado.
- * Al decidirse, cancela las que sigan corriendo.
+ * Runs several tasks at once.
+ * ALL succeeds when all succeed, fails as soon as one fails.
+ * ANY succeeds as soon as one succeeds, fails when all have failed.
+ * Whichever decides first cancels the rest.
  */
 public class Parallel implements Task {
 

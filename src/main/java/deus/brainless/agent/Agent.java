@@ -7,35 +7,39 @@ import deus.brainless.goap.GoapPlanner;
 import deus.brainless.goap.GoapState;
 import deus.brainless.goap.arbitration.GoapArbiter;
 import deus.brainless.limbic.Psyche;
+import deus.brainless.task.Task;
 import deus.brainless.task.TaskController;
+import deus.brainless.task.TaskFactory;
+import deus.brainless.task.TaskRun;
+import deus.brainless.task.tasks.Sequence;
 import deus.brainless.utils.Timer;
 
-import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
- * Glue. Holds a psyche, an arbiter and a planner, and moves one tick forward:
+ * Glue between psyche, arbiter, planner and task controller. One tick is:
  *
  * <pre>
- *   senses -> Urges -> drives -> Proposal -> arbitration -> the one drive wanted
- *                                                              |
- *                                          already being served -+-> nothing to do
- *                                                              |
- *                                                             goal
- *                                                              |
- *                                                             plan
+ * senses -&gt; urges -&gt; drives -&gt; proposals -&gt; arbitration -&gt; wanted drive
+ *                                                        |
+ *                                        already served -+&gt; nothing to do
+ *                                                        |
+ *                                    goal -&gt; plan -&gt; tasks on the controller
  * </pre>
  *
- * <p>This is the top of the stack: it depends on everything and nothing depends
- * on it. {@link #update} stops at the plan on purpose — turning actions into tasks
- * belongs to whoever owns the game loop, so that {@code Agent} never has to know
- * what a "task" is.
+ * <p>Top of the stack: depends on everything, nothing depends on it.
  *
- * <p>The arbiter is asked only what is wanted, never whether to abandon it. How
- * committed an agent is to what it is doing is answered by {@code
- * Task.interruptible()}, over in the task package — not from here.
+ * <p>Planning and doing stay separate. A {@link GoapAction} says what would be
+ * true after it, in the planner's copy of the world; the {@link Task} for that
+ * same action is what touches the real one. Both are written by the caller and
+ * glued here through {@link TaskFactory}, never by making an action also a task.
+ *
+ * <p>The arbiter is only asked what is wanted, never whether to abandon it. How
+ * committed an agent is is answered by {@code Task.interruptible()}, not here.
+ * This class never marks itself busy with a plan the controller refused.
  */
 public final class Agent {
 
@@ -43,6 +47,7 @@ public final class Agent {
 	private final GoapArbiter arbiter;
 	private final GoapPlanner planner;
 	private final DriveGoals goals;
+	private final TaskFactory<GoapAction> tasks;
 	private final TaskController tc;
 	private final Timer updateTimer;
 
@@ -50,13 +55,35 @@ public final class Agent {
 	private Drive currentDrive;
 	private Optional<Plan> currentPlan = Optional.empty();
 
-	public Agent(Psyche psyche, GoapArbiter arbiter, GoapPlanner planner, DriveGoals goals, TaskController tc, Timer timer) {
+	/**
+	 * @param tasks turns a planned action into something that runs. Asked for a
+	 *              fresh, never-null {@link Task} each time a plan starts, so a
+	 *              plan that is retried never inherits the last one's state.
+	 * @param timer  how often {@link #update} is allowed to think; the world
+	 *              still moves every tick
+	 */
+	public Agent(Psyche psyche,
+	             GoapArbiter arbiter,
+	             GoapPlanner planner,
+	             DriveGoals goals,
+	             TaskFactory<GoapAction> tasks,
+	             TaskController tc,
+	             Timer timer) {
 		this.psyche = psyche;
 		this.arbiter = arbiter;
 		this.planner = planner;
 		this.goals = goals;
+		this.tasks = tasks;
 		this.tc = tc;
 		this.updateTimer = timer;
+
+		// The agent no longer has to be told a plan is over: the controller says so.
+		// Only the run that belongs to what is being pursued may clear it — a run
+		// cancelled to make room for a new plan fires this too, and that one must
+		// not wipe the plan that is replacing it.
+		tc.onFinished(run -> {
+			if (run.origin() == currentDrive) finishCurrent();
+		});
 	}
 
 	/** Feeds what the world currently looks like. Called every tick, before {@link #update}. */
@@ -66,47 +93,75 @@ public final class Agent {
 	}
 
 	/**
-	 * Moves one tick forward.
+	 * Moves one tick forward; if a new drive won, puts its plan on the
+	 * controller. The controller itself is ticked by whoever owns the game loop.
 	 *
-	 * @param world what the planner's world looks like now — facts, not feelings
-	 * @return the plan to carry out, or empty if there is nothing new to do
+	 * @param world the planner's world as it is now — facts, not feelings
+	 * @return the plan just started, or empty if there is nothing new to do
 	 */
-	public void update(GoapState world) {
+	public Optional<Plan> update(GoapState world) {
 		updateTimer.tick();
-		if (!updateTimer.hasElapsed()) return;
+		if (!updateTimer.hasElapsed()) return Optional.empty();
 
+		// Cleared before, not after: what this tick asked for stays readable once
+		// update returns, and never piles up over ticks.
+		proposed.clear();
 		psyche.probe(proposed::add);
 		proposed.forEach(arbiter::propose);
 
 		Optional<Drive> wanted = arbiter.resolve();
-		if (wanted.isEmpty()) return;
+		if (wanted.isEmpty()) return Optional.empty();
 
 		// The intersection: already being served. Re-planning the same drive every
 		// tick would restart the agent forever.
-		if (wanted.get().equals(currentDrive)) return;
+		if (wanted.get().equals(currentDrive)) return Optional.empty();
 
 		Optional<Goal> goal = goals.goalFor(wanted.get(), world);
-		if (goal.isEmpty()) return;
+		if (goal.isEmpty()) return Optional.empty();
 
-		Optional<List<GoapAction>> actions = planner.compute(goal.get().satisfied(), goal.get().heuristic(), goal.get().start());
+		Optional<List<GoapAction>> actions =
+			planner.compute(goal.get().satisfied(), goal.get().heuristic(), goal.get().start());
+		if (actions.isEmpty()) return Optional.empty();
 
-		if (actions.isEmpty()) return ;
+		Plan plan = new Plan(wanted.get(), List.copyOf(actions.get()));
 
-		currentDrive = wanted.get();
-		currentPlan = actions.map(list -> new Plan(wanted.get(), List.copyOf(list)));
+		// The drive travels with the run: it is how a finished task is recognised
+		// as the one this agent was pursuing.
+		if (!tc.setCurrent(new TaskRun<>(sequenceFor(plan), plan.drive()))) {
+			// Something is running that refuses to be interrupted. The plan is not
+			// discarded and the agent does not move on: next tick, same drive, try
+			// again once the controller is free.
+			return Optional.empty();
+		}
 
-		// tc.setCurrent()
-
+		// Committing after the handover is deliberate. setCurrent cancelled whatever
+		// was running, which fired onFinished for the previous drive and cleared the
+		// previous plan; the new one lands on top of that, untouched.
+		currentDrive = plan.drive();
+		currentPlan = Optional.of(plan);
+		return currentPlan;
 	}
 
 	/**
-	 * Forgets what was being pursued, so the next tick plans afresh. Whoever runs
-	 * the tasks calls this when the activity is over or was abandoned — the agent
-	 * cannot know on its own, since it never watches the task finish.
+	 * Forgets what was being pursued, so the next tick plans afresh, and stops
+	 * whatever it was doing. Automatic when the activity ends or fails; call it
+	 * by hand to abandon a plan that turned out to be a mistake.
 	 */
 	public void finishCurrent() {
 		currentDrive = null;
 		currentPlan = Optional.empty();
+		// Safe to re-enter: the fields are already clear, so the onFinished that
+		// this triggers matches no drive and stops there.
+		tc.clear();
+	}
+
+	/** The plan as a sequence of steps, each asking the factory afresh. */
+	private Task sequenceFor(Plan plan) {
+		List<Supplier<Task>> steps = new ArrayList<>(plan.actions().size());
+		for (GoapAction action : plan.actions()) {
+			steps.add(() -> tasks.create(action));
+		}
+		return new Sequence(steps);
 	}
 
 	public Psyche psyche() { return psyche; }

@@ -3,16 +3,13 @@ package deus.brainless.utils;
 /**
  * A stopwatch counted in ticks, for cooldowns and "wait N ticks" work.
  *
- * <p>Advances only when {@link #tick()} is called, matching the task system:
- * whoever owns the game loop drives it. It never reads the wall clock, so it
- * cannot disagree with the tick that woke it, and it cannot run twice if the
- * same tick is processed twice.
+ * <p>Advances only when {@link #tick()} is called — whoever owns the game loop
+ * drives it. It never reads the wall clock, so it cannot disagree with the tick
+ * that woke it or run twice if one tick is processed twice.
  *
- * <p>Durations are kept in nanoseconds so no precision is thrown away at
- * construction, but they are <em>rounded up</em> to whole ticks when asked
- * whether they have passed: {@code fromNano(10_000_000)} — ten milliseconds —
- * is due after one tick, never after zero. If you need genuine sub-tick
- * resolution, this is the wrong class; drive something else off the wall clock.
+ * <p>Durations are kept in nanoseconds, but rounded <em>up</em> to whole ticks
+ * when checked: {@code fromNano(10_000_000)} is due after one tick, never zero.
+ * For genuine sub-tick resolution, drive something else off the wall clock.
  *
  * <p>A new timer is already running, so a cooldown is just:
  * <pre>{@code
@@ -20,9 +17,9 @@ package deus.brainless.utils;
  * if (cooldown.hasElapsed()) { attack(); cooldown.reset(); }
  * }</pre>
  *
- * <p>{@link #stop()} pauses and {@link #start()} resumes from where it paused;
- * neither forgets elapsed time. {@link #reset()} starts a fresh cycle, and
- * also starts the timer unless {@link #setAutoStart(boolean)} says otherwise.
+ * <p>{@link #stop()} pauses and {@link #start()} resumes; neither forgets
+ * elapsed time. {@link #reset()} starts a fresh cycle and, unless
+ * {@link #setAutoStart(boolean)} says otherwise, also starts the timer.
  */
 public final class Timer {
 
