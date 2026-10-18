@@ -11,11 +11,11 @@ It has nothing to do with generative AI or complex neural networks.
 ### Example of villagier AI
 ```java
 AI ai = AI.create(brain -> {
-    brain.inputs()
-        .add("hunger",  0.0)
-        .add("fatigue", 0.0)
-        .add("danger",  0.0)
-        .add("work",    0.0);
+    brain.inputs(in -> in
+        .declare("hunger",  0.0)
+        .declare("fatigue", 0.0)
+        .declare("danger",  0.0)
+        .declare("work",    0.0));
 
     brain.layer("desires", layer -> {
         layer.mix("desire_eat")

@@ -57,8 +57,15 @@ public class Temperament {
 		layers.add(layer);
 	}
 
-	public InputBuilder inputs() {
-		return inputBuilder;
+	/**
+	 * Declares the nodes the world will feed, with the value each one starts at.
+	 * The same shape as {@link #layer}: the lambda is the declaration.
+	 *
+	 * <p>Inputs live outside any layer on purpose — they are read by mixes, never
+	 * computed themselves.
+	 */
+	public void inputs(Consumer<InputBuilder> config) {
+		config.accept(inputBuilder);
 	}
 
 	Sensor createNode(String name, boolean isInput) {
