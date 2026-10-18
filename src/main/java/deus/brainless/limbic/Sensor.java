@@ -14,6 +14,9 @@ public class Sensor {
 	final int index;
 	private final boolean isInput;
 	private double initialValue = 0.0;
+	private double bias = 0.0;
+	private double min = 0.0;
+	private double max = 1.0;
 
 	final List<Influence> influences = new ArrayList<>();
 	private final List<OutputAction> outputs = new ArrayList<>();
@@ -48,10 +51,36 @@ public class Sensor {
 		n.useSigmoid = useSigmoid;
 		n.sigmoidFactor = sigmoidFactor;
 		n.initialValue = initialValue;
+		n.bias = bias;
+		n.min = min;
+		n.max = max;
 		return n;
 	}
 
 	// Config (Only during build)
+
+	/**
+	 * Constant the mix starts from, before any influence is applied. This is how a
+	 * mix expresses {@code bias - x} without a dedicated constant input node.
+	 */
+	public Sensor bias(double bias) {
+		this.bias = bias;
+		return this;
+	}
+
+	/**
+	 * Sets the mix's range. The accumulated mix is clamped to {@code [min, max]}
+	 * before the sigmoid, and the sigmoid is normalised to this range so its
+	 * midpoint sits at the middle of {@code [min, max]}. Defaults to {@code [0, 1]}.
+	 * Pass {@link Double#NEGATIVE_INFINITY} / {@link Double#POSITIVE_INFINITY} to
+	 * leave the value unbounded.
+	 */
+	public Sensor bound(double min, double max) {
+		if (min > max) throw new IllegalArgumentException("bound min must be <= max, was " + min + " > " + max);
+		this.min = min;
+		this.max = max;
+		return this;
+	}
 
 	public Sensor sigmoid(double factor) {
 		this.useSigmoid = true;
@@ -84,18 +113,35 @@ public class Sensor {
 		outputs.add(new OutputAction(min, max, maxInclusive, drive));
 	}
 
+	/**
+	 * Folds the mix from its {@link #bias(double)}, then bounds the result, then
+	 * applies the sigmoid.
+	 *
+	 * <p>Order, and why: the bound is applied to the accumulated mix first so the
+	 * sigmoid is fed a value inside the sensor's own range. The sigmoid is then
+	 * applied <em>normalised</em> to that range, so its midpoint (0.5) always sits
+	 * at the middle of {@code [min, max]} rather than a hardcoded 0.5. For the
+	 * default {@code [0, 1]} bound this is exactly the old behaviour.
+	 */
 	void compute(Urges s) {
 		if (isInput) return;
 
-		double value = 0;
+		double value = bias;
 		for (Influence conn : influences) {
 			value = conn.apply(value, s.get(conn.from()));
 		}
 
-		value = Math.min(1.0, Math.max(0.0, value));
+		value = Math.max(min, Math.min(max, value));
 
 		if (useSigmoid) {
-			value = Psyches.sigmoid((value - 0.5) * sigmoidFactor);
+			double span = max - min;
+			if (Double.isFinite(span) && span > 0.0) {
+				double normalized = (value - min) / span;
+				value = min + span * Psyches.sigmoid((normalized - 0.5) * sigmoidFactor);
+			} else {
+				// Degenerate or unbounded range: no normalisation possible.
+				value = Psyches.sigmoid((value - 0.5) * sigmoidFactor);
+			}
 		}
 
 		s.set(index, value);

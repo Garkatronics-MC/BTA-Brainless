@@ -77,10 +77,6 @@ public final class Agent {
 		this.tc = tc;
 		this.updateTimer = timer;
 
-		// The agent no longer has to be told a plan is over: the controller says so.
-		// Only the run that belongs to what is being pursued may clear it — a run
-		// cancelled to make room for a new plan fires this too, and that one must
-		// not wipe the plan that is replacing it.
 		tc.onFinished(run -> {
 			if (run.origin() == currentDrive) finishCurrent();
 		});
@@ -103,8 +99,6 @@ public final class Agent {
 		updateTimer.tick();
 		if (!updateTimer.hasElapsed()) return Optional.empty();
 
-		// Cleared before, not after: what this tick asked for stays readable once
-		// update returns, and never piles up over ticks.
 		proposed.clear();
 		psyche.probe(proposed::add);
 		proposed.forEach(arbiter::propose);
@@ -112,31 +106,19 @@ public final class Agent {
 		Optional<Drive> wanted = arbiter.resolve();
 		if (wanted.isEmpty()) return Optional.empty();
 
-		// The intersection: already being served. Re-planning the same drive every
-		// tick would restart the agent forever.
 		if (wanted.get().equals(currentDrive)) return Optional.empty();
 
 		Optional<Goal> goal = goals.goalFor(wanted.get(), world);
 		if (goal.isEmpty()) return Optional.empty();
 
-		Optional<List<GoapAction>> actions =
-			planner.compute(goal.get().satisfied(), goal.get().heuristic(), goal.get().start());
+		Optional<List<GoapAction>> actions = planner.compute(goal.get().satisfied(), goal.get().heuristic(), goal.get().start());
+
 		if (actions.isEmpty()) return Optional.empty();
 
 		Plan plan = new Plan(wanted.get(), List.copyOf(actions.get()));
 
-		// The drive travels with the run: it is how a finished task is recognised
-		// as the one this agent was pursuing.
-		if (!tc.setCurrent(new TaskRun<>(sequenceFor(plan), plan.drive()))) {
-			// Something is running that refuses to be interrupted. The plan is not
-			// discarded and the agent does not move on: next tick, same drive, try
-			// again once the controller is free.
-			return Optional.empty();
-		}
+		if (!tc.setCurrent(new TaskRun<>(sequenceFor(plan), plan.drive()))) return Optional.empty();
 
-		// Committing after the handover is deliberate. setCurrent cancelled whatever
-		// was running, which fired onFinished for the previous drive and cleared the
-		// previous plan; the new one lands on top of that, untouched.
 		currentDrive = plan.drive();
 		currentPlan = Optional.of(plan);
 		return currentPlan;
@@ -150,8 +132,6 @@ public final class Agent {
 	public void finishCurrent() {
 		currentDrive = null;
 		currentPlan = Optional.empty();
-		// Safe to re-enter: the fields are already clear, so the onFinished that
-		// this triggers matches no drive and stops there.
 		tc.clear();
 	}
 

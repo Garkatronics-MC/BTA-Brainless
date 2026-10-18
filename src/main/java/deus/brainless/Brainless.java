@@ -1,5 +1,6 @@
 package deus.brainless;
 
+import deus.brainless.example.ExampleEntities;
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,5 +27,7 @@ public class Brainless implements ModInitializer {
 	}
 
 	public void afterGameStart() {
+		// Example mob. TODO: remove before release.
+		ExampleEntities.register();
 	}
 }

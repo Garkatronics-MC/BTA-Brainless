@@ -54,6 +54,31 @@ public class MixBuilder {
 		return this;
 	}
 
+	/**
+	 * Constant the mix starts from, before any influence is applied. Replaces the
+	 * old trick of declaring a constant {@code one} input and adding it.
+	 */
+	public MixBuilder bias(double bias) {
+		sensor.bias(bias);
+		return this;
+	}
+
+	/**
+	 * Sets the mix's range. The accumulated mix is clamped to {@code [min, max]}
+	 * before the sigmoid, and the sigmoid is normalised to it. Defaults to
+	 * {@code [0, 1]}; pass infinities to leave it unbounded.
+	 * See {@link Sensor#bound(double, double)}.
+	 */
+	public MixBuilder bound(double min, double max) {
+		sensor.bound(min, max);
+		return this;
+	}
+
+	/** Leaves the computed value unbounded (no clamp at all). */
+	public MixBuilder unbounded() {
+		return bound(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
+	}
+
 	public MixBuilder suppressedBy(String inhibitor, double threshold) {
 		Sensor inh = temperament.getNode(inhibitor);
 		sensor.canceledBy(threshold, 1.0, inh);
