@@ -17,6 +17,9 @@
 	"entrypoints": {
 		"main": [
 			"deus.brainless.Brainless"
+		],
+		"initModels": [
+			"deus.brainless.example.ExampleModels"
 		]
 	},
 	"mixins": [

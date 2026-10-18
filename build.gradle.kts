@@ -66,6 +66,9 @@ dependencies {
 	api(libs.patheticEngine)
 	include(libs.patheticEngine)
 
+	testImplementation(libs.junit)
+	testRuntimeOnly(libs.junit.launcher)
+
 }
 java {
 	toolchain {
@@ -115,7 +118,10 @@ tasks {
 	}
 	withType<JavaExec>().configureEach { defaultCharacterEncoding = "UTF-8" }
 	withType<Javadoc>().configureEach { options.encoding = "UTF-8" }
-	withType<Test>().configureEach { defaultCharacterEncoding = "UTF-8" }
+	withType<Test>().configureEach {
+		defaultCharacterEncoding = "UTF-8"
+		useJUnitPlatform()
+	}
 	withType<Jar>().configureEach {
 		licenseFile?.let {
 			from(it) {

@@ -6,3 +6,9 @@ build/
 out/
 run/
 run-server/
+
+# Local only for now — the architecture is still moving, these are not ready to
+# be shared. Remove the rule to start tracking again.
+/CONTEXT.md
+/docs/
+/src/test/
