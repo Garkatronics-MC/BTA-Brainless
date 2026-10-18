@@ -11,7 +11,7 @@ import deus.brainless.task.Task;
 import deus.brainless.task.TaskController;
 import deus.brainless.task.TaskFactory;
 import deus.brainless.task.TaskRun;
-import deus.brainless.task.tasks.Sequence;
+import deus.brainless.task.flow.Sequence;
 import deus.brainless.utils.Timer;
 
 import java.util.ArrayList;

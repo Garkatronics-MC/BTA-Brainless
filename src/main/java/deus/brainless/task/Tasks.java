@@ -1,14 +1,19 @@
 package deus.brainless.task;
 
-import deus.brainless.task.tasks.Parallel;
-import deus.brainless.task.tasks.Retry;
-import deus.brainless.task.tasks.Selector;
-import deus.brainless.task.tasks.Sequence;
-import deus.brainless.task.tasks.Wait;
+import deus.brainless.task.flow.Fallback;
+import deus.brainless.task.flow.Parallel;
+import deus.brainless.task.flow.Retry;
+import deus.brainless.task.flow.Sequence;
+import deus.brainless.task.behaviour.Wait;
 
-import java.util.List;
 import java.util.function.Supplier;
 
+/**
+ * Every task this library ships, in one place. The three groups are the three
+ * questions a task can answer for itself: is it built out of other tasks
+ * ({@code flow}), is it ready to use as it is ({@code behaviour}), or is it the
+ * contract itself and lives in {@code task}.
+ */
 public final class Tasks {
 
 	private Tasks() {}
@@ -23,13 +28,13 @@ public final class Tasks {
 		return Parallel.any(children);
 	}
 
-	public static Retry retry(Supplier<Task> factory, int maxAttempts) {
-		return new Retry(factory, maxAttempts);
+	@SafeVarargs
+	public static Fallback fallbackOf(Supplier<Task>... options) {
+		return Fallback.of(options);
 	}
 
-	@SafeVarargs
-	public static Selector selectorOf(Supplier<Task>... steps) {
-		return Selector.of(steps);
+	public static Retry retry(Supplier<Task> factory, int maxAttempts) {
+		return new Retry(factory, maxAttempts);
 	}
 
 	@SafeVarargs

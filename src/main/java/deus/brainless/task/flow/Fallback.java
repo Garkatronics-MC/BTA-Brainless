@@ -1,0 +1,66 @@
+package deus.brainless.task.flow;
+
+import deus.brainless.task.StopReason;
+import deus.brainless.task.Task;
+import deus.brainless.task.TaskRun;
+import deus.brainless.task.TaskStatus;
+
+import java.util.List;
+import java.util.function.Supplier;
+
+/**
+ * Runs options in order until one succeeds: the first success wins, a failure
+ * only counts once every option has failed. With no options at all it fails.
+ *
+ * <p>Named for what it does rather than for the shape it has — a selector
+ * suggests picking one up front, and this picks as it goes.
+ */
+public class Fallback implements Task {
+	private final List<Supplier<Task>> options;
+	private int index;
+	private TaskRun<Void> current;
+
+	public Fallback(List<Supplier<Task>> options) {
+		this.options = List.copyOf(options);
+	}
+
+	@SafeVarargs
+	public static Fallback of(Supplier<Task>... options) {
+		return new Fallback(List.of(options));
+	}
+
+	@Override
+	public void start() {
+		index = 0;
+		current = null;
+		if (!options.isEmpty()) startOption();
+	}
+
+	@Override
+	public TaskStatus tick() {
+		if (current == null) return TaskStatus.FAILURE;
+
+		TaskStatus s = current.tick();
+		if (s == TaskStatus.SUCCESS) return TaskStatus.SUCCESS;
+		if (s == TaskStatus.FAILURE) {
+			if (++index >= options.size()) return TaskStatus.FAILURE;
+			startOption();
+		}
+		return TaskStatus.RUNNING;
+	}
+
+	@Override
+	public void stop(StopReason reason) {
+		if (current != null) current.cancel();
+	}
+
+	@Override
+	public boolean interruptible() {
+		return current == null || current.canInterrupt();
+	}
+
+	private void startOption() {
+		current = new TaskRun<>(options.get(index).get(), null);
+		current.start();
+	}
+}

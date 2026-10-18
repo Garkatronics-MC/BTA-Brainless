@@ -6,7 +6,6 @@ import java.util.Optional;
 
 import deus.brainless.drive.Drive;
 import deus.brainless.drive.Proposal;
-import deus.brainless.goap.selectors.Selector;
 
 /**
  * Collects what the psyche asked for this tick and hands back the one drive it
@@ -15,11 +14,11 @@ import deus.brainless.goap.selectors.Selector;
  */
 public class GoapArbiter {
 	private final List<Proposal> pending = new ArrayList<>();
-	private final Selector selector;
+	private final ProposalSelector selector;
 	private final ArbiterConfig config;
 
 
-	public GoapArbiter(Selector selector, ArbiterConfig config) {
+	public GoapArbiter(ProposalSelector selector, ArbiterConfig config) {
 		this.selector = selector;
 		this.config = config;
 	}

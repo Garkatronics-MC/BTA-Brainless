@@ -1,4 +1,4 @@
-package deus.brainless.task.tasks;
+package deus.brainless.task.flow;
 
 import deus.brainless.task.StopReason;
 import deus.brainless.task.Task;

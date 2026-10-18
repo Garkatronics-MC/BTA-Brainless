@@ -1,4 +1,4 @@
-package deus.brainless.goap.selectors;
+package deus.brainless.goap.arbitration;
 
 import deus.brainless.drive.Proposal;
 import deus.brainless.goap.arbitration.ArbiterConfig;
@@ -7,7 +7,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
-public class HighestPriorityProposalSelector implements Selector {
+public class HighestPriorityProposalSelector implements ProposalSelector {
 
 	@Override
 	public Optional<Proposal> select(List<Proposal> proposals, ArbiterConfig config) {

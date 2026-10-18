@@ -1,4 +1,4 @@
-package deus.brainless.task.tasks;
+package deus.brainless.task.flow;
 
 import deus.brainless.task.StopReason;
 import deus.brainless.task.Task;
@@ -8,36 +8,36 @@ import deus.brainless.task.TaskStatus;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class Selector implements Task {
-	private final List<Supplier<Task>> options;
+public class Sequence implements Task {
+	private final List<Supplier<Task>> steps;
 	private int index;
 	private TaskRun<Void> current;
 
-	public Selector(List<Supplier<Task>> options) {
-		this.options = List.copyOf(options);
+	public Sequence(List<Supplier<Task>> steps) {
+		this.steps = List.copyOf(steps);
 	}
 
 	@SafeVarargs
-	public static Selector of(Supplier<Task>... options) {
-		return new Selector(List.of(options));
+	public static Sequence of(Supplier<Task>... steps) {
+		return new Sequence(List.of(steps));
 	}
 
 	@Override
 	public void start() {
 		index = 0;
 		current = null;
-		if (!options.isEmpty()) startOption();
+		if (!steps.isEmpty()) startStep();
 	}
 
 	@Override
 	public TaskStatus tick() {
-		if (current == null) return TaskStatus.FAILURE;
+		if (current == null) return TaskStatus.SUCCESS;   // sin pasos
 
 		TaskStatus s = current.tick();
-		if (s == TaskStatus.SUCCESS) return TaskStatus.SUCCESS;
-		if (s == TaskStatus.FAILURE) {
-			if (++index >= options.size()) return TaskStatus.FAILURE;
-			startOption();
+		if (s == TaskStatus.FAILURE) return TaskStatus.FAILURE;
+		if (s == TaskStatus.SUCCESS) {
+			if (++index >= steps.size()) return TaskStatus.SUCCESS;
+			startStep();
 		}
 		return TaskStatus.RUNNING;
 	}
@@ -52,8 +52,8 @@ public class Selector implements Task {
 		return current == null || current.canInterrupt();
 	}
 
-	private void startOption() {
-		current = new TaskRun<>(options.get(index).get(), null);
+	private void startStep() {
+		current = new TaskRun<>(steps.get(index).get(), null);
 		current.start();
 	}
 }
