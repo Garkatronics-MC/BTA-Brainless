@@ -16,9 +16,6 @@ public final class Psyches {
 		return new Psyche(template, new AbsoluteThresholdPolicy(fallbackThreshold));
 	}
 
-	/**
-	 * Wraps drives declared by a template, in declaration order.
-	 */
 	public static List<Drive> declaredDrives(Temperament template) {
 		return List.copyOf(template.declaredDrives());
 	}

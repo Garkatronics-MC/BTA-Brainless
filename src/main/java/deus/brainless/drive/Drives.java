@@ -1,9 +1,6 @@
 package deus.brainless.drive;
 
-/**
- * The drives this library ships. Anything else is created with
- * {@link Drive#of(String)}.
- */
+/** The drives this library ships. Others via {@link Drive#of(String)}. */
 public final class Drives {
 
 	private Drives() {}

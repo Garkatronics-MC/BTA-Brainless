@@ -59,22 +59,12 @@ public class Sensor {
 
 	// Config (Only during build)
 
-	/**
-	 * Constant the mix starts from, before any influence is applied. This is how a
-	 * mix expresses {@code bias - x} without a dedicated constant input node.
-	 */
 	public Sensor bias(double bias) {
 		this.bias = bias;
 		return this;
 	}
 
-	/**
-	 * Sets the mix's range. The accumulated mix is clamped to {@code [min, max]}
-	 * before the sigmoid, and the sigmoid is normalised to this range so its
-	 * midpoint sits at the middle of {@code [min, max]}. Defaults to {@code [0, 1]}.
-	 * Pass {@link Double#NEGATIVE_INFINITY} / {@link Double#POSITIVE_INFINITY} to
-	 * leave the value unbounded.
-	 */
+	/** Clamps to [{@code min}, {@code max}] before sigmoid; pass infinities for unbounded. */
 	public Sensor bound(double min, double max) {
 		if (min > max) throw new IllegalArgumentException("bound min must be <= max, was " + min + " > " + max);
 		this.min = min;
@@ -108,21 +98,10 @@ public class Sensor {
 		canceledBy(min, max, inhibitor, 0.5);
 	}
 
-	/** Declares: while this sensor sits in that window, that drive is being asked for. */
 	void triggerOn(double min, double max, boolean maxInclusive, Drive drive) {
 		outputs.add(new OutputAction(min, max, maxInclusive, drive));
 	}
 
-	/**
-	 * Folds the mix from its {@link #bias(double)}, then bounds the result, then
-	 * applies the sigmoid.
-	 *
-	 * <p>Order, and why: the bound is applied to the accumulated mix first so the
-	 * sigmoid is fed a value inside the sensor's own range. The sigmoid is then
-	 * applied <em>normalised</em> to that range, so its midpoint (0.5) always sits
-	 * at the middle of {@code [min, max]} rather than a hardcoded 0.5. For the
-	 * default {@code [0, 1]} bound this is exactly the old behaviour.
-	 */
 	void compute(Urges s) {
 		if (isInput) return;
 
@@ -149,10 +128,6 @@ public class Sensor {
 		if (onCompute != null) onCompute.accept(value);
 	}
 
-	/**
-	 * Whether an inhibitor is currently holding this sensor down. A silenced
-	 * sensor proposes nothing and is not eligible to be the dominant drive.
-	 */
 	boolean silenced(double value, Urges urges) {
 		for (Cancellation c : cancellations) {
 			if (value >= c.min && value <= c.max && urges.get(c.inhibitor) >= c.threshold) return true;

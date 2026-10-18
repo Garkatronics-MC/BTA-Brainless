@@ -8,12 +8,7 @@ import deus.brainless.task.behaviour.Wait;
 
 import java.util.function.Supplier;
 
-/**
- * Every task this library ships, in one place. The three groups are the three
- * questions a task can answer for itself: is it built out of other tasks
- * ({@code flow}), is it ready to use as it is ({@code behaviour}), or is it the
- * contract itself and lives in {@code task}.
- */
+/** Factory for every task in this library. */
 public final class Tasks {
 
 	private Tasks() {}
@@ -42,15 +37,10 @@ public final class Tasks {
 		return Sequence.of(steps);
 	}
 
-	/**
-	 * Waits a fixed stretch of ticks and then succeeds. For a duration, not for a
-	 * condition: nothing is being watched, the clock simply runs out.
-	 */
 	public static Wait waitFor(long ticks) {
 		return Wait.ofTicks(ticks);
 	}
 
-	/** As {@link #waitFor(long)}, in seconds. Fractional seconds round up. */
 	public static Wait waitForSecs(double secs) {
 		return Wait.ofSecs(secs);
 	}

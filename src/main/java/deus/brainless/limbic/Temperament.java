@@ -6,10 +6,7 @@ import deus.brainless.drive.Drive;
 import java.util.*;
 import java.util.function.Consumer;
 
-/**
- * Blueprint: reusable structure (nodes, connections, layers).
- * It does not store values. To execute it, create a {@link Psyche}.
- */
+/** Reusable structure (nodes, connections, layers); holds no values. {@link Psyche} executes it. */
 public class Temperament {
 	private final List<Layer> layers;
 	private final Map<String, Sensor> nodes;
@@ -46,7 +43,6 @@ public class Temperament {
 		return new MixBuilder(getNode(name), this);
 	}
 
-	/** Declares a node outside any layer. Only for wires feeding a mix. */
 	public MixBuilder mix(String name) {
 		return new MixBuilder(createNode(name, false), this);
 	}
@@ -57,13 +53,6 @@ public class Temperament {
 		layers.add(layer);
 	}
 
-	/**
-	 * Declares the nodes the world will feed, with the value each one starts at.
-	 * The same shape as {@link #layer}: the lambda is the declaration.
-	 *
-	 * <p>Inputs live outside any layer on purpose — they are read by mixes, never
-	 * computed themselves.
-	 */
 	public void inputs(Consumer<InputBuilder> config) {
 		config.accept(inputBuilder);
 	}
@@ -93,10 +82,6 @@ public class Temperament {
 		for (Layer layer : layers) layer.compute(urges);
 	}
 
-	/**
-	 * Every drive declaration this temperament makes, in declaration order.
-	 * Frozen on first ask; any new declaration rebuilds it.
-	 */
 	List<DriveBinding> driveBindings() {
 		if (bindings == null) {
 			List<DriveBinding> list = new ArrayList<>();
@@ -121,14 +106,10 @@ public class Temperament {
 		return sensor;
 	}
 
-	/**
-	 * Read-only view for inspection/debug.
-	 */
 	public Map<String, Sensor> getNodes() {
 		return Collections.unmodifiableMap(nodes);
 	}
 
-	/** The drives this temperament knows how to ask for. */
 	public Set<Drive> declaredDrives() {
 		Set<Drive> set = new LinkedHashSet<>();
 		driveBindings().forEach(b -> set.add(b.drive()));

@@ -9,12 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-/**
- * Runs several tasks at once.
- * ALL succeeds when all succeed, fails as soon as one fails.
- * ANY succeeds as soon as one succeeds, fails when all have failed.
- * Whichever decides first cancels the rest.
- */
+/** Runs tasks in parallel; ALL needs every success, ANY needs one. */
 public class Parallel implements Task {
 
 	public enum Policy { ALL, ANY }

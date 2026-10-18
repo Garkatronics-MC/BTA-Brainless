@@ -2,9 +2,5 @@ package deus.brainless.goap.arbitration;
 
 import deus.brainless.drive.Drive;
 
-/**
- * @param minPriority proposals below this are not worth acting on at all
- * @param fallback what is wanted when nothing else is — the default activity,
- *                not an error handler: it is returned from the very first tick
- */
+/** Arbitration tuning: the priority floor and the drive wanted when nothing else is. */
 public record ArbiterConfig(double minPriority, Drive fallback) {}

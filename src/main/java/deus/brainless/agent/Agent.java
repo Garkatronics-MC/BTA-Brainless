@@ -20,26 +20,9 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
- * Glue between psyche, arbiter, planner and task controller. One tick is:
- *
- * <pre>
- * senses -&gt; urges -&gt; drives -&gt; proposals -&gt; arbitration -&gt; wanted drive
- *                                                        |
- *                                        already served -+&gt; nothing to do
- *                                                        |
- *                                    goal -&gt; plan -&gt; tasks on the controller
- * </pre>
- *
- * <p>Top of the stack: depends on everything, nothing depends on it.
- *
- * <p>Planning and doing stay separate. A {@link GoapAction} says what would be
- * true after it, in the planner's copy of the world; the {@link Task} for that
- * same action is what touches the real one. Both are written by the caller and
- * glued here through {@link TaskFactory}, never by making an action also a task.
- *
- * <p>The arbiter is only asked what is wanted, never whether to abandon it. How
- * committed an agent is is answered by {@code Task.interruptible()}, not here.
- * This class never marks itself busy with a plan the controller refused.
+ * One tick: senses -> drives -> plan -> tasks on the controller.
+ * Planning and doing stay separate — a {@link GoapAction} says what would be
+ * true after it; the {@link Task} touches the real world.
  */
 public final class Agent {
 
@@ -56,11 +39,8 @@ public final class Agent {
 	private Optional<Plan> currentPlan = Optional.empty();
 
 	/**
-	 * @param tasks turns a planned action into something that runs. Asked for a
-	 *              fresh, never-null {@link Task} each time a plan starts, so a
-	 *              plan that is retried never inherits the last one's state.
-	 * @param timer  how often {@link #update} is allowed to think; the world
-	 *              still moves every tick
+	 * @param tasks provides a fresh {@link Task} per action when a plan starts
+	 * @param timer gates how often {@link #update} may re-think
 	 */
 	public Agent(Psyche psyche,
 	             GoapArbiter arbiter,
@@ -82,19 +62,12 @@ public final class Agent {
 		});
 	}
 
-	/** Feeds what the world currently looks like. Called every tick, before {@link #update}. */
+
 	public Agent sense(String node, double value) {
 		psyche.set(node, value);
 		return this;
 	}
 
-	/**
-	 * Moves one tick forward; if a new drive won, puts its plan on the
-	 * controller. The controller itself is ticked by whoever owns the game loop.
-	 *
-	 * @param world the planner's world as it is now — facts, not feelings
-	 * @return the plan just started, or empty if there is nothing new to do
-	 */
 	public Optional<Plan> update(GoapState world) {
 		updateTimer.tick();
 		if (!updateTimer.hasElapsed()) return Optional.empty();
@@ -124,18 +97,13 @@ public final class Agent {
 		return currentPlan;
 	}
 
-	/**
-	 * Forgets what was being pursued, so the next tick plans afresh, and stops
-	 * whatever it was doing. Automatic when the activity ends or fails; call it
-	 * by hand to abandon a plan that turned out to be a mistake.
-	 */
 	public void finishCurrent() {
 		currentDrive = null;
 		currentPlan = Optional.empty();
 		tc.clear();
 	}
 
-	/** The plan as a sequence of steps, each asking the factory afresh. */
+
 	private Task sequenceFor(Plan plan) {
 		List<Supplier<Task>> steps = new ArrayList<>(plan.actions().size());
 		for (GoapAction action : plan.actions()) {
@@ -146,14 +114,12 @@ public final class Agent {
 
 	public Psyche psyche() { return psyche; }
 
-	/** The drive currently being pursued, or null. */
+
 	public Optional<Drive> currentDrive() { return Optional.ofNullable(currentDrive); }
 
 	public Optional<Plan> currentPlan() { return currentPlan; }
 
-	/** Everything asked for on the last tick, for debugging. */
 	public List<Proposal> proposed() { return List.copyOf(proposed); }
 
-	/** A drive and the actions that would serve it. */
 	public record Plan(Drive drive, List<GoapAction> actions) {}
 }

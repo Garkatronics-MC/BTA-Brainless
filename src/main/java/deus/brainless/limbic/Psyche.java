@@ -6,11 +6,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * Runtime: a shared {@link Temperament} plus this agent's own state.
- *
- * <p>Evaluating is pure: it reads the state, it never writes it, and it never
- * runs world code. The world reaches the psyche through
- * {@link #set(String, double)} before {@link #probe()}.
+ * A shared {@link Temperament} plus this agent's own state. Evaluating is pure; the
+ * world reaches the psyche through {@link #set(String, double)} before {@link #probe()}.
  */
 public final class Psyche {
 
@@ -32,16 +29,11 @@ public final class Psyche {
 		this.policy = policy;
 	}
 
-	/**
-	 * Recomputes every need from the current state, then asks the policy what is
-	 * being requested right now.
-	 */
 	public List<Proposal> probe() {
 		template.probe(urges);
 		return policy.evaluate(urges, template.driveBindings());
 	}
 
-	/** Allocation-free variant, for running every tick on many agents. */
 	public void probe(Consumer<Proposal> sink) {
 		template.probe(urges);
 		for (Proposal proposal : policy.evaluate(urges, template.driveBindings())) {

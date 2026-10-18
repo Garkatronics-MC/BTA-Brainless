@@ -7,11 +7,7 @@ import java.util.Optional;
 import deus.brainless.drive.Drive;
 import deus.brainless.drive.Proposal;
 
-/**
- * Collects what the psyche asked for this tick and hands back the one drive it
- * settled on. Holds no memory between calls: it does not know, and does not
- * need to know, what the agent is already doing.
- */
+/** Hands back the one drive the psyche settled on this tick. Holds no memory between calls. */
 public class GoapArbiter {
 	private final List<Proposal> pending = new ArrayList<>();
 	private final ProposalSelector selector;
@@ -26,7 +22,6 @@ public class GoapArbiter {
 	public void propose(Proposal p) { pending.add(p); }
 	public void propose(List<Proposal> pps) { pending.addAll(pps); }
 
-	/** Consumes everything proposed so far. */
 	public Optional<Drive> resolve() {
 		Optional<Proposal> chosen = selector.select(List.copyOf(pending), this.config);
 		pending.clear();

@@ -54,27 +54,17 @@ public class MixBuilder {
 		return this;
 	}
 
-	/**
-	 * Constant the mix starts from, before any influence is applied. Replaces the
-	 * old trick of declaring a constant {@code one} input and adding it.
-	 */
 	public MixBuilder bias(double bias) {
 		sensor.bias(bias);
 		return this;
 	}
 
-	/**
-	 * Sets the mix's range. The accumulated mix is clamped to {@code [min, max]}
-	 * before the sigmoid, and the sigmoid is normalised to it. Defaults to
-	 * {@code [0, 1]}; pass infinities to leave it unbounded.
-	 * See {@link Sensor#bound(double, double)}.
-	 */
+	/** Clamps the mix to {@code [min, max]} before the sigmoid, which is normalised to it. */
 	public MixBuilder bound(double min, double max) {
 		sensor.bound(min, max);
 		return this;
 	}
 
-	/** Leaves the computed value unbounded (no clamp at all). */
 	public MixBuilder unbounded() {
 		return bound(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
 	}
@@ -90,16 +80,11 @@ public class MixBuilder {
 		return this;
 	}
 
-	/**
-	 * Asks for {@code drive} whenever this sensor sits between {@code min} and
-	 * {@code max}, both ends included. Proposals overlapping a shared boundary
-	 * both match — declare disjoint windows if you only want one.
-	 */
+	/** Asks for {@code drive} while this sensor sits within {@code [min, max]}, both ends included. */
 	public MixBuilder onRange(double min, double max, Drive drive) {
 		return onRange(min, max, true, drive);
 	}
 
-	/** As above, but {@code max} itself does not count. */
 	public MixBuilder onRange(double min, double max, boolean maxInclusive, Drive drive) {
 		sensor.triggerOn(min, max, maxInclusive, drive);
 		temperament.invalidateBindings();

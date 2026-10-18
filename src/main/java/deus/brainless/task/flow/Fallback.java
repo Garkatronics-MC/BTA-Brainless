@@ -8,13 +8,7 @@ import deus.brainless.task.TaskStatus;
 import java.util.List;
 import java.util.function.Supplier;
 
-/**
- * Runs options in order until one succeeds: the first success wins, a failure
- * only counts once every option has failed. With no options at all it fails.
- *
- * <p>Named for what it does rather than for the shape it has — a selector
- * suggests picking one up front, and this picks as it goes.
- */
+/** Tries options in order until one succeeds. */
 public class Fallback implements Task {
 	private final List<Supplier<Task>> options;
 	private int index;

@@ -7,16 +7,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * An impulse the body or character demands: hunger, fear, fatigue, boredom.
- * Not a goal and not a behaviour — the want, before anyone has decided what to
- * do about it. Carries no action.
- *
- * <p>Open set: {@link #of(String)} accepts any id, including names owned by
- * other mods, so callers must handle drives they do not recognise.
- *
- * <p>Ids are normalised (trimmed, lowercased) and instances are interned, so
- * {@code "Hunger"} and {@code "hunger"} are the same drive. Identity is how a
- * consumer recognises "this is the drive I am already on".
+ * An impulse the body demands: hunger, fear, fatigue. The want, before anyone decides what to do about it.
  */
 public final class Drive {
 
@@ -28,7 +19,6 @@ public final class Drive {
 		this.id = id;
 	}
 
-	/** Returns the interned drive for {@code id}, creating it on first use. */
 	public static Drive of(String id) {
 		Objects.requireNonNull(id, "Drive id must not be null");
 		String key = id.trim().toLowerCase(Locale.ROOT);
@@ -40,7 +30,6 @@ public final class Drive {
 		return id;
 	}
 
-	/** Every drive id created so far, in no particular order. Intended for debug tooling. */
 	public static Set<String> registeredIds() {
 		return Set.copyOf(REGISTRY.keySet());
 	}

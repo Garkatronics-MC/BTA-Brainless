@@ -26,58 +26,37 @@ public class FiniteStateMachine<T, C> {
 		};
 	}
 
-	/**
-	 * Initial state of the machine.
-	 */
 	public FiniteStateMachine<T, C> start(T initial) {
 		this.current = initial;
 		return this;
 	}
 
-	/**
-	 * Marks a state as terminal; the machine stops there.
-	 */
 	public FiniteStateMachine<T, C> terminal(T state) {
 		this.terminal = state;
 		return this;
 	}
 
-	/**
-	 * When the machine reaches this state.
-	 */
 	public FiniteStateMachine<T, C> on(T state, Consumer<C> action) {
 		actions.put(state, action);
 		return this;
 	}
 
-	/**
-	 * Conditions for reaching a new state.
-	 */
 	public FiniteStateMachine<T, C> transition(T state, Function<C, T> next) {
 		transitions.put(state, next);
 		return this;
 	}
 
-	/**
-	 * Do something when this state begins.
-	 */
 	public FiniteStateMachine<T, C> onEnter(T state, BiConsumer<C, T> handler) {
 		onEnter.put(state, handler);
 		return this;
 	}
 
-	/**
-	 * Do something when this state ends.
-	 */
 	public FiniteStateMachine<T, C> onExit(T state, BiConsumer<C, T> handler) {
 		onExit.put(state, handler);
 		return this;
 	}
 
 
-	/**
-	 * Update function
-	 */
 	public void update(C ctx) {
 		if (isDone()) return;
 		if (always != null) always.accept(ctx);
@@ -101,9 +80,6 @@ public class FiniteStateMachine<T, C> {
 		if (enter != null) enter.accept(ctx, previous);
 	}
 
-	/**
-	 * Force change to another state
-	 */
 	public void forceState(C ctx, T state) {
 		if (state == current) return;
 		BiConsumer<C, T> exit = onExit.get(current);
@@ -114,31 +90,19 @@ public class FiniteStateMachine<T, C> {
 		if (enter != null) enter.accept(ctx, prev);
 	}
 
-	/**
-	 * Executed always
-	 */
 	public FiniteStateMachine<T, C> onAlways(Consumer<C> handler) {
 		this.always = handler;
 		return this;
 	}
 
-	/**
-	 * Reset machine.
-	 */
 	public void reset() {
 		current = null;
 	}
 
-	/**
-	 * Get current state.
-	 */
 	public T current() {
 		return current;
 	}
 
-	/**
-	 * Check if the FSM has ended.
-	 */
 	public boolean isDone() {
 		return terminal != null && terminal.equals(current);
 	}
