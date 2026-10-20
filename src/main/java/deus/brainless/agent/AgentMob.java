@@ -129,6 +129,10 @@ public abstract class AgentMob extends net.minecraft.core.entity.Mob {
 		this.target = target;
 	}
 
+	public void setAgent(Agent agent) {
+		this.agent = agent;
+	}
+
 	public Agent agent() {
 		Agent a = this.agent;
 		if (a == null) {

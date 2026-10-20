@@ -19,6 +19,11 @@ public class GoapPlanner {
 		return this;
 	}
 
+	public GoapPlanner addAction(Set<GoapAction> actions) {
+		actions.addAll(Objects.requireNonNull(actions));
+		return this;
+	}
+
 	public GoapPlanner removeAction(GoapAction action) {
 		actions.remove(action);
 		return this;
