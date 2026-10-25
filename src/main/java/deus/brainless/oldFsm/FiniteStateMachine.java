@@ -1,4 +1,4 @@
-package deus.brainless.fsm;
+package deus.brainless.oldFsm;
 
 import java.util.HashMap;
 import java.util.Map;
