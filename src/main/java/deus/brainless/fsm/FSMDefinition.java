@@ -1,12 +1,15 @@
 package deus.brainless.fsm;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 public final class FSMDefinition<C> {
 	private final Map<FSMState, FSMTransition<C>> transitions;
 	private final Map<FSMState, List<FSMRule<C>>> scoped;
 	private final List<FSMRule<C>> global;
+	private final Map<FSMState, BiConsumer<C, FSMState>> onEnter;
+	private final Map<FSMState, BiConsumer<C, FSMState>> onExit;
 
 	private FSMDefinition(Builder<C> b) {
 		this.transitions = Map.copyOf(b.transitions);
@@ -16,11 +19,21 @@ public final class FSMDefinition<C> {
 		this.scoped = Map.copyOf(scopedCopy);
 
 		this.global = List.copyOf(b.global);
+		this.onEnter = Map.copyOf(b.onEnter);
+		this.onExit = Map.copyOf(b.onExit);
 	}
 
 	FSMState resolve(C context, FSMState target) {
 		FSMTransition<C> t = transitions.get(target);
 		return t == null ? null : t.apply(context);
+	}
+
+	BiConsumer<C, FSMState> onEnter(FSMState state) {
+		return onEnter.get(state);
+	}
+
+	BiConsumer<C, FSMState> onExit(FSMState state) {
+		return onExit.get(state);
 	}
 
 	public static <C> Builder<C> builder() { return new Builder<>(); }
@@ -37,8 +50,10 @@ public final class FSMDefinition<C> {
 
 	public static final class Builder<C> {
 		private final Map<FSMState, FSMTransition<C>> transitions = new HashMap<>();
-		private final Map<FSMState, List<FSMRule<C>>> scoped = new HashMap<>();  // antes: Map<FSMState, FSMCondition<C>>
-		private final List<FSMRule<C>> global = new ArrayList<>();               // antes: Set<FSMCondition<C>>
+		private final Map<FSMState, List<FSMRule<C>>> scoped = new HashMap<>();
+		private final List<FSMRule<C>> global = new ArrayList<>();
+		private final Map<FSMState, BiConsumer<C, FSMState>> onEnter = new HashMap<>();
+		private final Map<FSMState, BiConsumer<C, FSMState>> onExit = new HashMap<>();
 
 		public Builder<C> transition(FSMState to, FSMTransition<C> t) {
 			transitions.put(to, t);
@@ -52,6 +67,16 @@ public final class FSMDefinition<C> {
 
 		public Builder<C> always(FSMCondition<C> c, FSMState target) {
 			global.add(new FSMRule<>(c, target));
+			return this;
+		}
+
+		public Builder<C> onEnter(FSMState state, BiConsumer<C, FSMState> handler) {
+			onEnter.put(state, handler);
+			return this;
+		}
+
+		public Builder<C> onExit(FSMState state, BiConsumer<C, FSMState> handler) {
+			onExit.put(state, handler);
 			return this;
 		}
 
